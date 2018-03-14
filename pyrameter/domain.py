@@ -1,10 +1,26 @@
+import numpy as np
 from scipy.stats import randint
 
 
 class Domain(object):
+    """Base class for defining search domains.
+
+    Parameters
+    ----------
+    domain
+        The set or range of values to search.
+    path : str
+        Path to this domain in the search hierarchy.
+
+    Notes
+    -----
+    ``path`` is automatically computed when models are created during the
+    splitting process.
+    """
     def __init__(self, domain, path=None):
         self.domain = domain
         self.path = path
+        self.__complexity = None
 
     def __getitem__(self, key):
         if hasattr(self, key):
@@ -25,6 +41,9 @@ class Domain(object):
     def generate(self, index=False):
         raise NotImplementedError
 
+    def complexity(self):
+        raise NotImplementedError
+
     def map_to_domain(self, value):
         return value
 
@@ -35,6 +54,13 @@ class Domain(object):
 class ContinuousDomain(Domain):
     def __init__(self, domain, path=None, *args, **kws):
         super(ContinuousDomain, self).__init__(domain(*args, **kws), path=path)
+
+    @property
+    def complexity(self):
+        if self.__complexity is None:
+            a, b = self.domain.interval(.99)
+            self.__complexity = 2.0 + np.linalg.norm(b - a)
+        return self.__complexity
 
     def generate(self, index=False):
         return self.domain.rvs()
@@ -56,6 +82,12 @@ class DiscreteDomain(Domain):
             domain = [domain]
             self.rng = randint(0, len(domain))
         super(DiscreteDomain, self).__init__(domain, path=path)
+
+    @property
+    def complexity(self):
+        if self.__complexity is None:
+            self.__complexity = 2.0 - (1.0 / len(self.domain))
+        return self.__complexity
 
     def generate(self, index=False):
         idx = self.rng.rvs()
@@ -81,6 +113,12 @@ class ExhaustiveDomain(Domain):
         if not isinstance(domain, list):
             domain = [domain]
         super(ExhaustiveDomain, self).__init__(domain, path=path)
+
+    @property
+    def complexity(self):
+        if self.__complexity is None:
+            self.__complexity = 2.0 - (1.0 / len(self.domain))
+        return self.__complexity
 
     def generate(self, index=False):
         val = self.domain[self.idx]
