@@ -1,5 +1,4 @@
-from arbor.domain import Domain, DiscreteDomain
-from arbor.models import Model
+from pyrameter.domain import Domain, DiscreteDomain
 
 
 class Scope(object):
@@ -45,7 +44,7 @@ class Scope(object):
     def split(self, path=''):
         """Split this scope into its constituent models.
 
-        
+
         """
         models = []
 
@@ -73,10 +72,10 @@ class Scope(object):
             else:
                 # Convert non-Domain values into single-value domains
                 if not isinstance(cval, Domain):
-                    cval = DiscreteDomain([cval])
+                    cval = DiscreteDomain(cval)
 
                 # Store the Domain into its own Model to merge later
-                m = Model()
+                m = self.__create_model()
                 m.add_domain(cpath, cval)
 
                 # Store as individual models if exclusive, otherwise merge
@@ -96,3 +95,6 @@ class Scope(object):
         return Scope(exclusive=self.exclusive,
                      optional=self.optional,
                      **self.children)
+
+    def __create_model(self):
+        pass
