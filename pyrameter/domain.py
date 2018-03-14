@@ -33,7 +33,7 @@ class Domain(object):
 
 
 class ContinuousDomain(Domain):
-    def __init__(self, domain, path=None, *args, *kws):
+    def __init__(self, domain, path=None, *args, **kws):
         super(ContinuousDomain, self).__init__(domain(*args, *kws), path=path)
 
     def generate(self, index=False):
@@ -44,23 +44,26 @@ class ContinuousDomain(Domain):
             'path': self.path,
             'distribution': self.domain.dist.name,
             'args': self.domain.args,
-            'kws': self.domain.kws
+            'kws': self.domain.kwds
         }
 
 
 class DiscreteDomain(Domain):
     def __init__(self, domain, path=None):
-        self.values = domain
-        super(DiscreteDomain, self).__init__(randint(0, len(domain)),
-                                             path=path)
+        try:
+            self.rng = randint(0, len(domain))
+        except AttributeError:
+            domain = [domain]
+            self.rng = randint(0, len(domain))
+        super(DiscreteDomain, self).__init__(domain, path=path)
 
     def generate(self, index=False):
-        idx = self.domain.rvs()
+        idx = self.rng.rvs()
         return self.values[idx] if not index else idx
 
     def map_to_domain(self, val):
         try:
-            idx = self.values.index(val)
+            idx = self.domain.index(val)
         except ValueError:
             idx = None
         return idx
@@ -68,13 +71,15 @@ class DiscreteDomain(Domain):
     def to_json(self):
         return {
             'path': self.path,
-            'domain': self.values
+            'domain': self.domain
         }
 
 
 class ExhaustiveDomain(Domain):
     def __init__(self, domain, path=None):
         self.idx = 0
+        if not isinstance(domain, list):
+            domain = [domain]
         super(ExhaustiveDomain, self).__init__(domain, path=path)
 
     def generate(self, index=False):
@@ -84,7 +89,7 @@ class ExhaustiveDomain(Domain):
 
     def map_to_domain(self, val):
         try:
-            idx = self.values.index(val)
+            idx = self.domain.index(val)
         except ValueError:
             idx = None
         return idx
@@ -92,6 +97,6 @@ class ExhaustiveDomain(Domain):
     def to_json(self):
         return {
             'path': self.path,
-            'domain': self.values,
+            'domain': self.domain,
             'idx': self.idx
         }
