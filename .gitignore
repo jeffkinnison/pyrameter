@@ -8,3 +8,4 @@ generated
 _build
 *.debug
 *.log
+.pytest_cache
