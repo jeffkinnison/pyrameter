@@ -7,7 +7,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 
-class Model(object):
+class RandomModel(object):
     """Hierarchical hyperparameter search tree matching a learning model.
 
     This class manages hyperparameter domains and search information for a
