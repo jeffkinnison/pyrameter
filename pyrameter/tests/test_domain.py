@@ -58,6 +58,10 @@ class TestContinuousDomain(TestDomain):
         ref = x.rvs(size=1000)
         assert np.all(src == ref)
 
+        src = np.array([d.generate(index=True) for _ in range(1000)])
+        ref = x.rvs(size=1000)
+        assert np.all(src == ref)
+
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
         res = {
@@ -75,14 +79,21 @@ class TestDiscreteDomain(TestDomain):
     __default_domain__ = [1, 2, 3, 4, 5]
 
     def test_generate(self):
-        pass
-
-    def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
+        for i in range(1000):
+            assert d.generate() in self.__default_domain__
+            assert d.generate(index=True) in range(0, 5)
 
     def test_map_to_domain(self):
         pass
 
+    def test_to_json(self):
+        d = self.__domain_class__(self.__default_domain__)
+        res = {
+            'path': None,
+            'domain': self.__default_domain__
+        }
+        assert d.to_json() == res
 
 
 class TestExhaustiveDomain(TestDomain):
@@ -94,7 +105,16 @@ class TestExhaustiveDomain(TestDomain):
         pass
 
     def test_map_to_domain(self):
-        pass
+        d = self.__domain_class__(self.__default_domain__)
+        for i in range(1000):
+            assert d.generate() in self.__default_domain__
+            assert d.generate(index=True) in range(0, 5)
 
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
+        res = {
+            'path': None,
+            'domain': self.__default_domain__,
+            'idx': 0
+        }
+        assert d.to_json() == res
