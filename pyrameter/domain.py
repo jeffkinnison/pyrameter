@@ -59,7 +59,7 @@ class DiscreteDomain(Domain):
 
     def generate(self, index=False):
         idx = self.rng.rvs()
-        return self.values[idx] if not index else idx
+        return self.domain[idx] if not index else idx
 
     def map_to_domain(self, val):
         try:
