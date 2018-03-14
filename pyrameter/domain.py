@@ -45,6 +45,18 @@ class Domain(object):
         raise NotImplementedError
 
     def map_to_domain(self, value):
+        """Map a value to its index in the domain.
+
+        Parameters
+        ----------
+        value
+            The value to find in the domain.
+
+        Returns
+        -------
+        The index of ``value`` in the domain if the domain is discrete, else
+        return the value.
+        """
         return value
 
     def to_json(self):
@@ -52,20 +64,68 @@ class Domain(object):
 
 
 class ContinuousDomain(Domain):
+    """Hyperparameter defined over a continuous, real-valued domain.
+
+    Parameters
+    ----------
+    domain : `scipy.stats.rv_continuous`
+        The probability distribution defining both the domain and how values
+        are drawn.
+    path : str
+        Path to this domain in the search hierarchy.
+
+    Other Parameters
+    ----------------
+    args
+        Additional arguments to parameterize ``domain``.
+    kws
+        Additional keyword arguments to parameterize ``domain``.
+    """
     def __init__(self, domain, path=None, *args, **kws):
         super(ContinuousDomain, self).__init__(domain(*args, **kws), path=path)
 
     @property
     def complexity(self):
+        """Approximate the size of this domain.
+
+        The size of a continuous domain is approximated by computing the
+        magnitude of the interval containing 99%% of the distribution.
+
+        Notes
+        -----
+        This property implements the complexity formula for continuous domains
+        introduced by Kinnison *et al.* _[1]
+
+        References
+        ----------
+        ..  [1] Kinnison, J., Kremer-Herman, N., Thain, D., & Scheirer, W.
+            (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
+            Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
+        """
         if self.__complexity is None:
             a, b = self.domain.interval(.99)
             self.__complexity = 2.0 + np.linalg.norm(b - a)
         return self.__complexity
 
     def generate(self, index=False):
+        """Generate a value from this domain.
+
+        Returns
+        -------
+        value : float
+            A value drawn from this domain's probability distribution.
+        """
         return self.domain.rvs()
 
     def to_json(self):
+        """Convert this domain into a JSON-serializable format.
+
+        Returns
+        -------
+        domain : dict
+            A dictionary representation of this domain containing only valid
+            JSON values.
+        """
         return {
             'path': self.path,
             'distribution': self.domain.dist.name,
@@ -75,6 +135,23 @@ class ContinuousDomain(Domain):
 
 
 class DiscreteDomain(Domain):
+    """Hyperparameter defined over a discrete domain.
+
+    Discrete domains are sets of arbitrary, non-overlapping values that have meaning
+    to what they parameterize. Values are drawn randomly when generated.
+
+    Parameters
+    ----------
+    domain : object or list of object
+        The set of objects comprising this domain.
+    path : str
+        Path to this domain in the search hierarchy.
+
+    Notes
+    -----
+    If a single, non-list object is provided to a DiscreteDomain, it will be
+    wrapped in a list to represent a domain with a single value.
+    """
     def __init__(self, domain, path=None):
         try:
             self.rng = randint(0, len(domain))
@@ -85,15 +162,59 @@ class DiscreteDomain(Domain):
 
     @property
     def complexity(self):
+        """Approximate the size of this domain.
+
+        The size of a discrete domain is approximated by computing the
+        cardinality of the domain.
+
+        Notes
+        -----
+        This property implements the complexity formula for discrete domains
+        introduced by Kinnison *et al.* _[1]
+
+        References
+        ----------
+        ..  [1] Kinnison, J., Kremer-Herman, N., Thain, D., & Scheirer, W.
+            (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
+            Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
+        """
         if self.__complexity is None:
             self.__complexity = 2.0 - (1.0 / len(self.domain))
         return self.__complexity
 
     def generate(self, index=False):
+        """Generate a value from this domain.
+
+        Parameters
+        ----------
+        index : bool
+            If True, return the index of the generated value along with the
+            value.
+
+        Returns
+        -------
+        value
+            A value drawn from this domain.
+        index : int, optional
+            The index of ``value`` in this domain.
+        """
         idx = self.rng.rvs()
-        return self.domain[idx] if not index else idx
+        value = self.domain[idx]
+        return value if not index else value, idx
 
     def map_to_domain(self, val):
+        """Map a value to its index in the domain.
+
+        Parameters
+        ----------
+        value
+            The value to find in the domain.
+
+        Returns
+        -------
+        The index of ``value`` in the domain if the domain is discrete, else
+        return the value.
+        """
         try:
             idx = self.domain.index(val)
         except ValueError:
@@ -101,6 +222,14 @@ class DiscreteDomain(Domain):
         return idx
 
     def to_json(self):
+        """Convert this domain into a JSON-serializable format.
+
+        Returns
+        -------
+        domain : dict
+            A dictionary representation of this domain containing only valid
+            JSON values.
+        """
         return {
             'path': self.path,
             'domain': self.domain
@@ -108,6 +237,24 @@ class DiscreteDomain(Domain):
 
 
 class ExhaustiveDomain(Domain):
+    """Hyperparameter defined over a discrete domain, searched exhaustively.
+
+    Exhaustive domains iterate over the values they contain in order, making
+    them suitable for grid search or searches where all combinations of
+    hyperparameter values must be tested.
+
+    Parameters
+    ----------
+    domain : object or list of object
+        The set of objects comprising this domain.
+    path : str
+        Path to this domain in the search hierarchy.
+
+    Notes
+    -----
+    If a single, non-list object is provided to an ExhaustiveDomain, it will be
+    wrapped in a list to represent a domain with a single value.
+    """
     def __init__(self, domain, path=None):
         self.idx = 0
         if not isinstance(domain, list):
@@ -116,16 +263,59 @@ class ExhaustiveDomain(Domain):
 
     @property
     def complexity(self):
+        """Approximate the size of this domain.
+
+        The size of a discrete domain is approximated by computing the
+        cardinality of the domain.
+
+        Notes
+        -----
+        This property implements the complexity formula for discrete domains
+        introduced by Kinnison *et al.* _[1]
+
+        References
+        ----------
+        ..  [1] Kinnison, J., Kremer-Herman, N., Thain, D., & Scheirer, W.
+            (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
+            Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
+        """
         if self.__complexity is None:
             self.__complexity = 2.0 - (1.0 / len(self.domain))
         return self.__complexity
 
     def generate(self, index=False):
+        """Generate a value from this domain.
+
+        Parameters
+        ----------
+        index : bool
+            If True, return the index of the generated value along with the
+            value.
+
+        Returns
+        -------
+        value
+            A value drawn from this domain.
+        index : int, optional
+            The index of ``value`` in this domain.
+        """
         val = self.domain[self.idx]
         self.idx = (self.idx + 1) % len(self.domain)
-        return val if not index else self.idx
+        return val if not index else val, self.idx
 
     def map_to_domain(self, val):
+        """Map a value to its index in the domain.
+
+        Parameters
+        ----------
+        value
+            The value to find in the domain.
+
+        Returns
+        -------
+        The index of ``value`` in the domain if the domain is discrete, else
+        return the value.
+        """
         try:
             idx = self.domain.index(val)
         except ValueError:
@@ -133,6 +323,14 @@ class ExhaustiveDomain(Domain):
         return idx
 
     def to_json(self):
+        """Convert this domain into a JSON-serializable format.
+
+        Returns
+        -------
+        domain : dict
+            A dictionary representation of this domain containing only valid
+            JSON values.
+        """
         return {
             'path': self.path,
             'domain': self.domain,
