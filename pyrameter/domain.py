@@ -34,7 +34,7 @@ class Domain(object):
 
 class ContinuousDomain(Domain):
     def __init__(self, domain, path=None, *args, **kws):
-        super(ContinuousDomain, self).__init__(domain(*args, *kws), path=path)
+        super(ContinuousDomain, self).__init__(domain(*args, **kws), path=path)
 
     def generate(self, index=False):
         return self.domain.rvs()
