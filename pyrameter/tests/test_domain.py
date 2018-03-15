@@ -82,7 +82,10 @@ class TestDiscreteDomain(TestDomain):
         d = self.__domain_class__(self.__default_domain__)
         for i in range(1000):
             assert d.generate() in self.__default_domain__
-            assert d.generate(index=True) in range(0, 5)
+
+            val, idx = d.generate(index=True)
+            assert val in self.__default_domain__
+            assert idx in range(len(self.__default_domain__))
 
     def test_map_to_domain(self):
         pass
@@ -106,9 +109,13 @@ class TestExhaustiveDomain(TestDomain):
 
     def test_map_to_domain(self):
         d = self.__domain_class__(self.__default_domain__)
+        d2 = self.__domain_class__(self.__default_domain__)
         for i in range(1000):
             assert d.generate() in self.__default_domain__
-            assert d.generate(index=True) in range(0, 5)
+
+            val, idx = d2.generate(index=True)
+            assert val in self.__default_domain__
+            assert idx == (i % len(self.__default_domain__))
 
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
