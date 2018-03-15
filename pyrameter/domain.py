@@ -17,7 +17,7 @@ class Domain(object):
     ``path`` is automatically computed when models are created during the
     splitting process.
     """
-    def __init__(self, domain, path=None):
+    def __init__(self, domain=None, path=None):
         self.domain = domain
         self.path = path
         self.__complexity = None
@@ -200,7 +200,7 @@ class DiscreteDomain(Domain):
         """
         idx = self.rng.rvs()
         value = self.domain[idx]
-        return value if not index else value, idx
+        return value if not index else (value, idx)
 
     def map_to_domain(self, val):
         """Map a value to its index in the domain.
@@ -299,9 +299,10 @@ class ExhaustiveDomain(Domain):
         index : int, optional
             The index of ``value`` in this domain.
         """
-        val = self.domain[self.idx]
+        idx = self.idx
+        val = self.domain[idx]
         self.idx = (self.idx + 1) % len(self.domain)
-        return val if not index else val, self.idx
+        return val if not index else (val, idx)
 
     def map_to_domain(self, val):
         """Map a value to its index in the domain.
