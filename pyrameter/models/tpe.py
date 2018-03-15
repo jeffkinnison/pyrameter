@@ -1,12 +1,20 @@
-from arbor.models.model import Model
+from pyrameter.models.model import Model
 
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
 
 class TPEModel(Model):
-    def __init__(self, best_split=0.2, n_samples=10, **gmm_kws):
-        super(TPEModel, self).__init__()
+    def __init__(self, id=None, domains=None, results=None,
+                 update_complexity=True, priority_update_freq=10,
+                 best_split=0.2, n_samples=10, **gmm_kws):
+        super(TPEModel, self).__init__(id=id,
+                                       domains=domains,
+                                       results=results,
+                                       update_complexity=update_complexity,
+                                       priority_update_freq= \
+                                            priority_update_freq,
+                                       n_samples=n_samples)
         self.l = GaussianMixture(**gmm_kws)
         self.g = GaussianMixture(**gmm_kws)
         self.best_split = best_split

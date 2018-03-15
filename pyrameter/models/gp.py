@@ -1,12 +1,20 @@
-from arbor.models.model import Model
+from pyrameter.models.model import Model
 
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 
 
 class GPBayesModel(Model):
-    def __init__(self, n_samples=10, **gp_kws):
-        super(GPBayesModel, self).__init__(self)
+    def __init__(self, id=None, domains=None, results=None,
+                 update_complexity=True, priority_update_freq=10, n_samples=10,
+                 **gp_kws):
+        super(GPBayesModel, self).__init__(id=id,
+                                           domains=domains,
+                                           results=results,
+                                           update_complexity=update_complexity,
+                                           priority_update_freq= \
+                                                priority_update_freq,
+                                           n_samples=n_samples)
         self.gp = GaussianProcessRegressor(**gp_kws)
         self.n_samples = n_samples
 
