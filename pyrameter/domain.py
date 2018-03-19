@@ -17,7 +17,7 @@ class Domain(object):
     ``path`` is automatically computed when models are created during the
     splitting process.
     """
-    def __init__(self, domain=None, path=None):
+    def __init__(self, domain=None, path=''):
         self.domain = domain
         self.path = path
         self.__complexity = None
@@ -37,6 +37,12 @@ class Domain(object):
 
     def next(self):
         return self.__next__()
+
+    def __eq__(self, other):
+        return self.to_json() == other.to_json()
+
+    def __str__(self):
+        return str(self.to_json())
 
     def generate(self, index=False):
         raise NotImplementedError
@@ -60,7 +66,9 @@ class Domain(object):
         return value
 
     def to_json(self):
-        raise NotImplementedError
+        return {
+            'path': self.path
+        }
 
 
 class ContinuousDomain(Domain):
@@ -81,7 +89,7 @@ class ContinuousDomain(Domain):
     kws
         Additional keyword arguments to parameterize ``domain``.
     """
-    def __init__(self, domain, path=None, *args, **kws):
+    def __init__(self, domain, path='', *args, **kws):
         super(ContinuousDomain, self).__init__(domain(*args, **kws), path=path)
 
     @property
@@ -152,7 +160,7 @@ class DiscreteDomain(Domain):
     If a single, non-list object is provided to a DiscreteDomain, it will be
     wrapped in a list to represent a domain with a single value.
     """
-    def __init__(self, domain, path=None):
+    def __init__(self, domain, path=''):
         try:
             self.rng = randint(0, len(domain))
         except AttributeError:
@@ -255,7 +263,7 @@ class ExhaustiveDomain(Domain):
     If a single, non-list object is provided to an ExhaustiveDomain, it will be
     wrapped in a list to represent a domain with a single value.
     """
-    def __init__(self, domain, path=None):
+    def __init__(self, domain, path=''):
         self.idx = 0
         if not isinstance(domain, list):
             domain = [domain]
