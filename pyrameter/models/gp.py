@@ -13,8 +13,7 @@ class GPBayesModel(Model):
                                            results=results,
                                            update_complexity=update_complexity,
                                            priority_update_freq= \
-                                                priority_update_freq,
-                                           n_samples=n_samples)
+                                                priority_update_freq)
         self.gp = GaussianProcessRegressor(**gp_kws)
         self.n_samples = n_samples
 

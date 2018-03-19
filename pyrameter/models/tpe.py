@@ -13,11 +13,11 @@ class TPEModel(Model):
                                        results=results,
                                        update_complexity=update_complexity,
                                        priority_update_freq= \
-                                            priority_update_freq,
-                                       n_samples=n_samples)
+                                            priority_update_freq)
         self.l = GaussianMixture(**gmm_kws)
         self.g = GaussianMixture(**gmm_kws)
         self.best_split = best_split
+        self.n_samples = n_samples
 
     def generate(self):
         vec = self.__results_to_feature_vector()
