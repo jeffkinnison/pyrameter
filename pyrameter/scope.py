@@ -1,4 +1,14 @@
 from pyrameter.domain import Domain, DiscreteDomain
+from pyrameter.models import get_model_class
+
+
+class DuplicateDomainError(Exception):
+    def __init__(self, orig, dup):
+        msg = 'Multiple domains with the same name were passed to a same scope.'
+        msg += '\nThe offending domains are: {}:{} and {}:{}'.format(
+            key, orig, key, dup)
+        msg += '\nRename one of these domains to resolve this issue.'
+        super(DuplicateDomainError, self).__init__(msg)
 
 
 class Scope(object):
@@ -30,23 +40,32 @@ class Scope(object):
     optional : bool
         If True, split this scope by creating an empty clone.
     """
-    def __init__(self, exclusive=False, optional=False, *args, **kws):
-        self.exclusive = exclusive
-        self.optional = optional
+    def __init__(self, *args, exclusive=False, optional=False, model='random', **kws):
+        self.exclusive = bool(exclusive)
+        self.optional = bool(optional)
+        self.model = get_model_class(model)
 
         self.children = {}
         for arg in args:
-            self.children[str(arg[0])] = arg[1]
+            key, val = arg
+            key = str(key)
+            if key not in self.children:
+                self.children[key] = val
+            else:
+                raise DuplicateDomainError(key, self.children[key], val)
 
-        for kw in kws:
-            self.children[str(kw)] = kws[kw]
+        for key, val in kws.items():
+            if key not in self.children:
+                self.children[key] = val
+            else:
+                raise DuplicateDomainError(key, self.children[key], val)
 
     def split(self, path=''):
         """Split this scope into its constituent models.
 
 
         """
-        models = []
+        models = [] if self.exclusive else [self.__create_model()]
 
         for child in self.children:
             # Update the path to the current child in the tree
@@ -75,8 +94,9 @@ class Scope(object):
                     cval = DiscreteDomain(cval)
 
                 # Store the Domain into its own Model to merge later
+                cval.path = cpath
                 m = self.__create_model()
-                m.add_domain(cpath, cval)
+                m.add_domain(cval)
 
                 # Store as individual models if exclusive, otherwise merge
                 if self.exclusive or len(models) == 0:
@@ -87,7 +107,7 @@ class Scope(object):
 
         # Create an empty model to account for optional scopes
         if self.optional:
-            models.append(Model())
+            models.append(self.__create_model())
 
         return models
 
@@ -97,4 +117,4 @@ class Scope(object):
                      **self.children)
 
     def __create_model(self):
-        pass
+        return self.model()
