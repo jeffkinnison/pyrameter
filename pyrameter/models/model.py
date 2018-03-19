@@ -57,6 +57,21 @@ class Model(object):
         self.priority_update_freq = priority_update_freq
         self.recompute_priority = True
 
+    def __eq__(self, other):
+        return isinstance(other, Model) and len(self) == len(other) and \
+               all([self.domains[i] == other.domains[i]
+                    for i in range(len(self.domains))])
+
+    def __len__(self):
+        return len(self.domains)
+
+    def __str__(self):
+        d = '\n\t'.join([str(domain) for domain in self.domains])
+        return '\n'.join(['{', d, '}'])
+
+    def __repr__(self):
+        return str(self)
+
     def add_domain(self, domain):
         """Add a domain to this model.
 
@@ -72,6 +87,7 @@ class Model(object):
         """
         self.domains.append(domain)
         self.domain_added = True
+        self.domains.sort(key=lambda x: x.path)
 
     def add_result(self, result):
         """Add a result to this model.
@@ -99,10 +115,10 @@ class Model(object):
         A new ``pyrameter.models.Model`` instance with copies of all model
         attributes.
         """
-        m = Model(domains=[d for d in self.domains],
-                  results=[r for r in self.results],
-                  update_complexity=self.update_complexity,
-                  priority_update_freq=self.priority_update_freq)
+        m = self.__class__(domains=[d for d in self.domains],
+                           results=[r for r in self.results],
+                           update_complexity=self.update_complexity,
+                           priority_update_freq=self.priority_update_freq)
         return m
 
     def merge(self, other):
