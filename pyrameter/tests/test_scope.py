@@ -1,6 +1,7 @@
 import pytest
 
 from pyrameter import Scope
+from pyrameter.scope import DuplicateDomainError
 from pyrameter.domain import Domain, ContinuousDomain, DiscreteDomain, \
                              ExhaustiveDomain
 from pyrameter.models import RandomSearchModel, TPEModel, GPBayesModel
@@ -54,6 +55,13 @@ class TestScope(object):
         assert isinstance(s.children['c'], Scope)
         assert 'd' in s.children['c'].children
         assert isinstance(s.children['c'].children['d'], Domain)
+
+        # Ensure that duplicate domains may not exist in the same scope
+        with pytest.raises(DuplicateDomainError):
+            s = Scope(('a', Domain()), a=Domain())
+
+        with pytest.raises(DuplicateDomainError):
+            s = Scope(('a', Domain()), ('a', Domain()))
 
     def test_split(self):
         # Test splitting an empty Scope

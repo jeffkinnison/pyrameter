@@ -3,7 +3,7 @@ from pyrameter.models import get_model_class
 
 
 class DuplicateDomainError(Exception):
-    def __init__(self, orig, dup):
+    def __init__(self, key, orig, dup):
         msg = 'Multiple domains with the same name were passed to a same scope.'
         msg += '\nThe offending domains are: {}:{} and {}:{}'.format(
             key, orig, key, dup)
