@@ -1,5 +1,3 @@
-from arbor.models import model_loader
-
 import json
 
 
@@ -19,7 +17,7 @@ class JsonStorage(object):
         for i in range(models):
             model = models[i]
             m = {
-                'id': model.name if hasattr(model, name) else i
+                'id': model.name if hasattr(model, name) else i,
                 'complexity': model.complexity,
                 'priority': model.priority,
                 'rank': model.rank,
