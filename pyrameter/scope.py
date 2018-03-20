@@ -23,13 +23,15 @@ class Scope(object):
 
     Parameters
     ----------
+    children : pair of (str, {Scope,Domain}) or {Scope,Domain}
+        The sub-scopes and domains in this scope.
     exclusive : bool
         If True, split this Scope on each contained Scope or Domain. Default:
         False.
     optional : bool
         If True, split this scope by creating an empty clone. Default: False.
-    *args, **kws
-        Structures defining the Scope and Domain members of this Scope.
+    model : {'random','tpe','gp'}
+        The search strategy to use.
 
     Attributes
     ----------
@@ -39,11 +41,27 @@ class Scope(object):
         If True, split this Scope on each contained Scope or Domain.
     optional : bool
         If True, split this scope by creating an empty clone.
+
+    See Also
+    --------
+    ``pyrameter.Domain``
+    ``pyrameter.get_model_class``
     """
-    def __init__(self, *args, exclusive=False, optional=False, model='random', **kws):
-        self.exclusive = bool(exclusive)
-        self.optional = bool(optional)
-        self.model = get_model_class(model)
+    def __init__(self, *args, **kws):
+        try:
+            self.exclusive = bool(kws.pop('exclusive'))
+        except KeyError:
+            self.exclusive = True
+
+        try:
+            self.optional = bool(kws.pop('optional'))
+        except KeyError:
+            self.optional = structures
+
+        try:
+            self.model = get_model_class(str(kws.pop('model')))
+        except KeyError:
+            self.model = get_model_class('random')
 
         self.children = {}
         for arg in args:
