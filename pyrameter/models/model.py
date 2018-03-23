@@ -44,7 +44,7 @@ class Model(object):
     """
     def __init__(self, id=None, domains=None, results=None,
                  update_complexity=True, priority_update_freq=10):
-        self.id = str(uuid.uuid4())
+        self.id = str(uuid.uuid4()) if id is None else id
         self.domains = [] if domains is None else domains
         self.results = [] if results is None else results
 
@@ -53,9 +53,9 @@ class Model(object):
         self.rank = None
 
         self.update_complexity = update_complexity
-        self.domain_added = True
+        self.domain_added = bool(self.domains)
         self.priority_update_freq = priority_update_freq
-        self.recompute_priority = True
+        self.recompute_priority = False
 
     def __eq__(self, other):
         return isinstance(other, Model) and len(self) == len(other) and \
@@ -163,9 +163,9 @@ class Model(object):
     def complexity(self):
         # Only compute complexity if requested and an update is necessary
         if self.update_complexity and self.domain_added:
-            self._complexity = 0.0
+            self._complexity = 1.0
             for domain in self.domain:
-                self._complexity += domain.complexity
+                self._complexity *= domain.complexity
         return self._complexity
 
     @property
