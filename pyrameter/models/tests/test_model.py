@@ -7,7 +7,18 @@ class TestModel(object):
     __model_class__ = Model
 
     def test_init(self):
-        pass
+        # Test default initialization
+        m = self.__model_class__()
+        assert isinstance(m.id, str)
+        assert m.domains == []
+        assert m.results == []
+        assert m.complexity == 1.0
+        assert m.priority == 1.0
+        assert m.rank is None
+        assert m.update_complexity is True
+        assert m.domain_added is False
+        assert m.priority_update_freq == 10
+        assert m.recompute_priority is False
 
     def test_add_domain(self):
         pass
