@@ -189,7 +189,7 @@ class Model(object):
 
             self._priority = np.linalg.norm(scales.max() - scales.min())
 
-        return self.priority
+        return self._priority
 
     def to_json(self):
         """Convert the model into a JSON-serializable format.
