@@ -51,12 +51,12 @@ class Scope(object):
         try:
             self.exclusive = bool(kws.pop('exclusive'))
         except KeyError:
-            self.exclusive = True
+            self.exclusive = False
 
         try:
             self.optional = bool(kws.pop('optional'))
         except KeyError:
-            self.optional = structures
+            self.optional = False
 
         try:
             self.model = get_model_class(str(kws.pop('model')))
