@@ -33,6 +33,7 @@ setup(
         'scipy>=0.18.1',
         'numpy>=1.12.0',
         'scikit-learn>=0.18.1',
-        'sqlalchemy>=1.1.11'
+        'sqlalchemy>=1.1.11',
+        'pymongo'
     ],
 )
