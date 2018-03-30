@@ -1,3 +1,5 @@
+import uuid
+
 import numpy as np
 from scipy.stats import randint
 
@@ -18,6 +20,7 @@ class Domain(object):
     splitting process.
     """
     def __init__(self, domain=None, path=''):
+        self.id = str(uuid.uuid4())
         self.domain = domain
         self.path = path
         self.__complexity = None
