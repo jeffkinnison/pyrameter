@@ -1,3 +1,5 @@
+from pyrameter.domain import Domain
+
 import copy
 import uuid
 import weakref
@@ -5,6 +7,22 @@ import weakref
 import numpy as np
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
+
+
+class InvalidDomainError(Exception):
+    """Raised when a supplied domain is not an instance of pyrameter.Domain."""
+    def __init__(self, domain):
+        msg = '{} is not a valid pyrameter.Domain.'.format(domain)
+        msg += '\nDid you set up your models with pyrameter.build()?'
+        super(InvalidDomainError, self).__init__(msg)
+
+
+class InvalidResultError(Exception):
+    """Raised when a supplied result is not an instance of pyrameter.models.Result."""
+    def __init__(self, result):
+        msg = '{} is not a valid pyrameter.models.Result.'.format(result)
+        msg += '\nDid you set up your models with pyrameter.build()?'
+        super(InvalidResultError, self).__init__(msg)
 
 
 class Model(object):
@@ -266,8 +284,15 @@ class Value(object):
     """
     def __init__(self, value, domain, result):
         self.value = value
-        self.domain = weakref.ref(domain)
-        self.result = weakref.ref(result)
+        if isinstance(domain, Domain):
+            self.domain = weakref.ref(domain)
+        else:
+            raise InvalidDomainError(domain)
+
+        if isinstance(result, Result):
+            self.result = weakref.ref(result)
+        else:
+            raise InvalidResultError(result)
 
     def to_json(self):
         """Convert this result into a JSON-serializable format.
