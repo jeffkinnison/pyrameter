@@ -71,37 +71,43 @@ class TestScope(object):
         # Test splitting with a single domain
         s = Scope(a=ContinuousDomain(uniform))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with a single exclusive domain
         s = Scope(a=ContinuousDomain(uniform), exclusive=True)
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with a single optional domain
         s = Scope(a=ContinuousDomain(uniform), optional=True)
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with a single exclusive and optional domain
         s = Scope(a=ContinuousDomain(uniform), exclusive=True, optional=True)
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with two domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a'),
                                           DiscreteDomain([1, 2, 3], path='/b')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with two exclusive domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
                   exclusive=True)
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/b')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with two optional domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -109,7 +115,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a'),
                                           DiscreteDomain([1, 2, 3], path='/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with two exclusive and optional domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -117,7 +124,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with multiple domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -125,7 +133,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a'),
                                           DiscreteDomain([1, 2, 3], path='/b'),
                                           ExhaustiveDomain([4, 5, 6], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with multiple exclusive domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -133,7 +142,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([4, 5, 6], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with multiple optional domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -142,7 +152,8 @@ class TestScope(object):
                                           DiscreteDomain([1, 2, 3], path='/b'),
                                           ExhaustiveDomain([4, 5, 6], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting with multiple exclusive and optional domains
         s = Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -151,42 +162,49 @@ class TestScope(object):
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([4, 5, 6], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope
         s = Scope(A=Scope(a=ContinuousDomain(uniform)))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with a single exclusive domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), exclusive=True))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with a single optional domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), optional=True))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with a single exclusive and optional domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), exclusive=True, optional=True))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with two domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3])))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a'),
                                           DiscreteDomain([1, 2, 3], path='/A/b')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with two exclusive domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3])),
                   exclusive=True)
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a'),
                                           DiscreteDomain([1, 2, 3], path='/A/b')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with two optional domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3])),
@@ -194,7 +212,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a'),
                                           DiscreteDomain([1, 2, 3], path='/A/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested Scope with two exclusive and optional domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3])),
@@ -202,14 +221,16 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a'),
                                           DiscreteDomain([1, 2, 3], path='/A/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested exclusive Scope
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
                   exclusive=True))
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/A/b')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested optional Scope
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -217,7 +238,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a'),
                                           DiscreteDomain([1, 2, 3], path='/A/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested exclusive, optional Scope
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3]),
@@ -225,7 +247,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3], path='/A/b')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested scope and a top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
@@ -234,7 +257,8 @@ class TestScope(object):
                     ContinuousDomain(uniform, path='/A/a'),
                     DiscreteDomain([1, 2, 3, 4], path='/A/b'),
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested scope and one exclusive top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
@@ -243,7 +267,8 @@ class TestScope(object):
                     ContinuousDomain(uniform, path='/A/a'),
                     DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive nested scope and one top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -254,7 +279,8 @@ class TestScope(object):
                RandomSearchModel(domains=[
                     DiscreteDomain([1, 2, 3, 4], path='/A/b'),
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive nested scope and one exclusive top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -262,7 +288,8 @@ class TestScope(object):
         res = [RandomSearchModel(domains=[ContinuousDomain(uniform, path='/A/a')]),
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested scope and one optional top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
@@ -272,7 +299,8 @@ class TestScope(object):
                     DiscreteDomain([1, 2, 3, 4], path='/A/b'),
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one optional nested scope and one top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -283,7 +311,8 @@ class TestScope(object):
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel(domains=[
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one optional nested scope and one optional top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -294,7 +323,8 @@ class TestScope(object):
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one nested scope and one exclusive, optional top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
@@ -304,7 +334,8 @@ class TestScope(object):
                     DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive, optional nested scope and one top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -317,7 +348,8 @@ class TestScope(object):
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel(domains=[
                     ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive, optional nested scope and one exclusive, optional top-level domain
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -328,7 +360,8 @@ class TestScope(object):
                RandomSearchModel(),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive nested scope and one exclusive, optional top-level domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -338,7 +371,8 @@ class TestScope(object):
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one optional nested scope and one exclusive, optional top-level domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -349,7 +383,8 @@ class TestScope(object):
                RandomSearchModel(),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive, optional nested scope and one exclusive top-level domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -359,7 +394,8 @@ class TestScope(object):
                RandomSearchModel(domains=[DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
                RandomSearchModel(),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')])]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
         # Test splitting one exclusive, optional nested scope and one optional top-level domains
         s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
@@ -371,236 +407,253 @@ class TestScope(object):
                                           ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel(domains=[ExhaustiveDomain([5, 6, 7, 8], path='/c')]),
                RandomSearchModel()]
-        assert s.split() == res
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two nested Scopes
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two nested Scopes
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive nested Scopes
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two exclusive nested Scopes
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two optional nested Scopes
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two optional nested Scopes
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive, optional nested Scopes
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True, optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two exclusive, optional nested Scopes
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4])),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True, optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two nested Scopes, the first exclusive
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two nested Scopes, the first exclusive
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive nested Scopes,the first exclusive
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two exclusive nested Scopes,the first exclusive
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two optional nested Scopes, the first exclusive
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two optional nested Scopes, the first exclusive
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive, optional nested Scopes, the first exclusive
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True, optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two exclusive, optional nested Scopes, the first exclusive
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True, optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two nested Scopes, the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two nested Scopes, the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive nested Scopes,the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two exclusive nested Scopes,the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two optional nested Scopes, the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two optional nested Scopes, the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive, optional nested Scopes, the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True, optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two exclusive, optional nested Scopes, the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True, optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two nested Scopes, the first exclusive, optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True, optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two nested Scopes, the first exclusive, optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True, optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])))
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive nested Scopes,the first exclusive, optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True, optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')])]
-    assert s.split() == res
+        # Test splitting two exclusive nested Scopes,the first exclusive, optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True, optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')])]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two optional nested Scopes, the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True, optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b'),
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two optional nested Scopes, the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True, optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b'),
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
 
-    # Test splitting two exclusive, optional nested Scopes, the first optional
-    s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
-                      exclusive=True, optional=True),
-              B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
-              exclusive=True, optional=True)
-    res = [RandomSearchModel(domains=[
-                ContinuousDomain(uniform, path='/A/a')]),
-           RandomSearchModel(domains=[
-                DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
-           RandomSearchModel(),
-           RandomSearchModel(domains=[
-                ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
-                DiscreteDomain(['a', 'b'], path='/B/d')]),
-           RandomSearchModel()]
-    assert s.split() == res
+        # Test splitting two exclusive, optional nested Scopes, the first optional
+        s = Scope(A=Scope(a=ContinuousDomain(uniform), b=DiscreteDomain([1, 2, 3, 4]),
+                          exclusive=True, optional=True),
+                  B=Scope(c=ExhaustiveDomain([5, 6, 7, 8]), d=DiscreteDomain(['a', 'b'])),
+                  exclusive=True, optional=True)
+        res = [RandomSearchModel(domains=[
+                    ContinuousDomain(uniform, path='/A/a')]),
+               RandomSearchModel(domains=[
+                    DiscreteDomain([1, 2, 3, 4], path='/A/b')]),
+               RandomSearchModel(),
+               RandomSearchModel(domains=[
+                    ExhaustiveDomain([5, 6, 7, 8], path='/B/c'),
+                    DiscreteDomain(['a', 'b'], path='/B/d')]),
+               RandomSearchModel()]
+        for scope in s.split():
+            assert any(map(lambda r: scope == r, res))
