@@ -1,9 +1,11 @@
 import pytest
 
-from pyrameter.models.model import Model, Result, Value, InvalidDomainError, \
-                                   InvalidResultError
+from pyrameter.models.model import Model, Result, Value, InvalidModelError, \
+                                   InvalidDomainError, InvalidResultError, \
+                                   InvalidValueError
 
-from pyrameter.domain import Domain
+from pyrameter.domain import Domain, ContinuousDomain, DiscreteDomain, \
+                             ExhaustiveDomain
 
 
 class TestModel(object):
@@ -27,7 +29,11 @@ class TestModel(object):
 
 
     def test_add_domain(self):
-        pass
+        d1 = Domain()
+        d2 = Domain()
+
+
+
 
     def test_add_result(self):
         pass
@@ -63,7 +69,7 @@ class TestResult(object):
         assert r.results is None
         assert r.values == []
 
-
+        # Test initializing with loss, results, values
 
     def test_to_json(self):
         pass
@@ -81,7 +87,7 @@ class TestValue(object):
         d2 = Domain()
 
         # Test initializing with various values, results, and domains
-        values = [None, True, False, 1, 1.0, '1', (1,), [1], {'1': 1}, {1}]
+        values = [None, True, False, 1, 1.0, '1', (1,), [1], {'1': 1}]
 
         for val in values:
             v = Value(val, d1, r1)
@@ -112,13 +118,43 @@ class TestValue(object):
                 Value(val, val, r2)
 
         # Test initializing with invalid results
-        for val in values:
+        for val in values[1:]:
             with pytest.raises(InvalidResultError):
                 Value(val, d1, val)
             with pytest.raises(InvalidResultError):
                 Value(val, d2, val)
 
 
-
     def test_to_json(self):
-        pass
+        m1 = Model()
+        m2 = Model()
+
+        r1 = Result(m1)
+        r2 = Result(m2)
+
+        d1 = Domain()
+        d2 = Domain()
+
+        # Test initializing with various values, results, and domains
+        values = [None, True, False, 1, 1.0, '1', (1,), [1], {'1': 1}]
+
+        for val in values:
+            v = Value(val, d1, r1)
+            assert v.to_json() == {'value': val,
+                                   'domain': d1.id,
+                                   'result': r1.id}
+
+            v = Value(val, d2, r1)
+            assert v.to_json() == {'value': val,
+                                   'domain': d2.id,
+                                   'result': r1.id}
+
+            v = Value(val, d1, r2)
+            assert v.to_json() == {'value': val,
+                                   'domain': d1.id,
+                                   'result': r2.id}
+
+            v = Value(val, d2, r2)
+            assert v.to_json() == {'value': val,
+                                   'domain': d2.id,
+                                   'result': r2.id}
