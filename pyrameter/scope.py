@@ -52,16 +52,16 @@ class Scope(object):
             self.exclusive = bool(kws.pop('exclusive'))
         except KeyError:
             self.exclusive = False
-
+        
         try:
             self.optional = bool(kws.pop('optional'))
         except KeyError:
             self.optional = False
-
+        
         try:
-            self.model = get_model_class(str(kws.pop('model')))
+            model = kws.pop('model')
         except KeyError:
-            self.model = get_model_class('random')
+            model = 'random'
 
         self.children = {}
         for arg in args:
@@ -77,6 +77,8 @@ class Scope(object):
                 self.children[key] = val
             else:
                 raise DuplicateDomainError(key, self.children[key], val)
+            
+        self.model = model
 
     def __iter__(self):
         return self.children
