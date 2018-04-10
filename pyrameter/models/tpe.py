@@ -27,9 +27,9 @@ class TPEModel(Model):
         losses = np.reshape(losses, (-1, 1))
 
         for j in range(features.shape[1]):
-            self.l.fit(features[np.reshape(idx[:split, j]], (-1, 1)),
+            self.l.fit(features[np.reshape(idx[:split, j], (-1, 1))],
                        losses[idx[:split]])
-            self.g.fit(features[np.reshape(idx[split:, j]], (-1, 1)),
+            self.g.fit(features[np.reshape(idx[split:, j], (-1, 1))],
                        losses[idx[split:]])
 
             samples = self.l.sample(n_samples=10)
