@@ -78,6 +78,20 @@ class Scope(object):
             else:
                 raise DuplicateDomainError(key, self.children[key], val)
 
+    def __iter__(self):
+        return self.children
+
+    @property
+    def model(self):
+        return self.__model
+
+    @model.setter
+    def model(self, value):
+        self.__model = get_model_class(value)
+        for key, val in self.children.items():
+            if isinstance(val, self.__class__):
+                val.model = value
+
     def split(self, path=''):
         """Split this scope into its constituent models.
 
