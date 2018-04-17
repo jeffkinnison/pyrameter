@@ -52,12 +52,12 @@ class Scope(object):
             self.exclusive = bool(kws.pop('exclusive'))
         except KeyError:
             self.exclusive = False
-        
+
         try:
             self.optional = bool(kws.pop('optional'))
         except KeyError:
             self.optional = False
-        
+
         try:
             model = kws.pop('model')
         except KeyError:
@@ -67,21 +67,35 @@ class Scope(object):
         for arg in args:
             key, val = arg
             key = str(key)
-            if key not in self.children:
-                self.children[key] = val
-            else:
-                raise DuplicateDomainError(key, self.children[key], val)
+            self.add_child(key, val)
 
         for key, val in kws.items():
-            if key not in self.children:
-                self.children[key] = val
-            else:
-                raise DuplicateDomainError(key, self.children[key], val)
-            
+            self.add_child(key, val)
+
         self.model = model
 
     def __iter__(self):
         return self.children
+
+    def add_child(self, name, val):
+        """Add a child domain or Scope to this Scopeself.
+
+        Parameters
+        ----------
+        name : str
+            The name of this child node.
+        val : `pyrameter.Domain` or `pyrameter.Scope`
+            The Domain or Scope to add.
+
+        Raises
+        ------
+        DuplicateDomainError
+            Raised when attempting to add a child with a duplicate key.
+        """
+        if name not in self.children:
+            self.children[name] = val
+        else:
+            raise DuplicateDomainError(name, self.children[name], val)
 
     @property
     def model(self):
@@ -152,3 +166,7 @@ class Scope(object):
 
     def __create_model(self):
         return self.model()
+
+    def merge(self, other):
+        for k, v in other.children.items():
+            self.add_child(k, v)
