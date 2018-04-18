@@ -141,7 +141,7 @@ class Model(object):
         will trigger a recalculation of the complexity.
         """
         self.results.append(result)
-        should_update = (len(self.results) % priority_update_freq == 0)
+        should_update = (len(self.results) % self.priority_update_freq == 0)
         if not self.recompute_priority and should_update:
             self.recompute_priority = True
 
@@ -165,7 +165,7 @@ class Model(object):
         self.domains.extend(other.domains)
         # self.results.extend(other.results)
 
-    def __results_to_feature_vector(self):
+    def results_to_feature_vector(self):
         """Convert hyperparameter values to a feature vector.
 
         For use with methods that model the function mapping hyperparameter
@@ -177,12 +177,12 @@ class Model(object):
         this model and v is the number of hyperparameter values. The last
         entry in each row is the performance (e.g. loss).
         """
-        vec = np.zeros((len(self.results), len(self.results[0]) + 1),
+        vec = np.zeros((len(self.results), len(self.results[0].values) + 1),
                        dtype=np.float32)
         for i in range(len(self.results)):
             vec[i, -1] += self.results[i].loss
             for j in range(len(self.results[i].values)):
-                vec[i, j] += self.results[i].values[j]
+                vec[i, j] += self.results[i].values[j].to_numeric()
         return vec
 
     def generate(self):
@@ -344,6 +344,9 @@ class Value(object):
             self.result = result
         else:
             raise InvalidResultError(result)
+
+    def to_numeric(self):
+        return self.domain().map_to_index(self.value)
 
     def to_json(self):
         """Convert this result into a JSON-serializable format.
