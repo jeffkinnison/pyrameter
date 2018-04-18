@@ -20,39 +20,40 @@ class TPEModel(RandomSearchModel):
         self.warm_up = warm_up
 
     def generate(self):
-        if len(self.results) < self.warm_up:
+        if len(self.results) < self.warm_up or len(self.results) % self.warm_up == 0:
             params = super(TPEModel, self).generate()
         else:
-            vec = self.__results_to_feature_vector()
+            params = {}
+
+            vec = self.results_to_feature_vector()
             features, losses = np.copy(vec[:, :-1]), np.copy(vec[:, -1])
+            features = features.T
             idx = np.argsort(losses, axis=0)
             split = int(np.ceil(idx.shape[0] * self.best_split))
             losses = np.reshape(losses, (-1, 1))
 
-            for j in range(features.shape[1]):
+            for j in range(features.shape[0]):
                 l = GaussianMixture(**self.gmm_kws)
                 g = GaussianMixture(**self.gmm_kws)
-                self.l.fit(features[np.reshape(idx[:split, j], (-1, 1))],
-                           losses[idx[:split]])
-                self.g.fit(features[np.reshape(idx[split:, j], (-1, 1))],
-                           losses[idx[split:]])
+                l.fit(np.reshape(features[j, idx[:split]], (-1, 1)),
+                      losses[idx[:split]])
+                g.fit(np.reshape(features[j, idx[split:]], (-1, 1)),
+                      losses[idx[split:]])
 
-                samples = l.sample(n_samples=10)
+                samples, _ = l.sample(n_samples=10)
                 score_l = l.score(samples)
                 score_g = g.score(samples)
 
                 ei = score_l / score_g
-                best = samples[np.argmax(ei)]
+                best = samples[np.argmax(np.squeeze(ei).ravel())]
 
-                params = {}
-                for i in range(len(self.domains)):
-                    domain = self.domains[i]
-                    path = domain.path.split('/')
-                    curr = params
-                    for p in path[:-1]:
-                        if p not in curr:
-                            curr[p] = {}
-                        curr = curr[p]
-                    curr[path[-1]] = domain.map_to_domain(samples[i])
+                domain = self.domains[j]
+                path = domain.path.split('/')
+                curr = params
+                for p in path[:-1]:
+                    if p not in curr:
+                        curr[p] = {}
+                    curr = curr[p]
+                curr[path[-1]] = domain.map_to_domain(best[0], bound=True)
 
         return params
