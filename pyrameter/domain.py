@@ -53,7 +53,25 @@ class Domain(object):
     def complexity(self):
         raise NotImplementedError
 
-    def map_to_domain(self, value):
+    def map_to_domain(self, idx, bound=False):
+        """Map a index to its value in the domain.
+
+        Parameters
+        ----------
+        idx : int
+            The index to retrieve in the domain.
+        bound : bool
+            If True, return the first or last element of the domain if ``idx``
+            < 0 or idx > |domain|, respectively.
+
+        Returns
+        -------
+        The value at ``idx`` in the domain if the domain is discrete, else
+        return the index.
+        """
+        return idx
+
+    def map_to_index(self, value):
         """Map a value to its index in the domain.
 
         Parameters
@@ -213,12 +231,36 @@ class DiscreteDomain(Domain):
         value = self.domain[idx]
         return value if not index else (value, idx)
 
-    def map_to_domain(self, val):
+    def map_to_domain(self, idx, bound=False):
+        """Map a index to its value in the domain.
+
+        Parameters
+        ----------
+        idx : int
+            The index to retrieve in the domain.
+        bound : bool
+            If True, return the first or last element of the domain if ``idx``
+            < 0 or idx > |domain|, respectively.
+
+        Returns
+        -------
+        The value at ``idx`` in the domain if the domain is discrete, else
+        return the index.
+        """
+        if bound:
+            idx = min(len(self.domain), max(0, idx))
+        try:
+            val = self.domain[int(round(idx))]
+        except IndexError:
+            val = None
+        return val
+
+    def map_to_index(self, val):
         """Map a value to its index in the domain.
 
         Parameters
         ----------
-        value
+        val
             The value to find in the domain.
 
         Returns
@@ -315,12 +357,36 @@ class ExhaustiveDomain(Domain):
         self.idx = (self.idx + 1) % len(self.domain)
         return val if not index else (val, idx)
 
-    def map_to_domain(self, val):
+    def map_to_domain(self, idx, bound=False):
+        """Map a index to its value in the domain.
+
+        Parameters
+        ----------
+        idx : int
+            The index to retrieve in the domain.
+        bound : bool
+            If True, return the first or last element of the domain if ``idx``
+            < 0 or idx > |domain|, respectively.
+
+        Returns
+        -------
+        The value at ``idx`` in the domain if the domain is discrete, else
+        return the index.
+        """
+        if bound:
+            idx = min(len(self.domain) - 1, max(0, idx))
+        try:
+            val = self.domain[int(round(idx))]
+        except IndexError:
+            val = None
+        return val
+
+    def map_to_index(self, val):
         """Map a value to its index in the domain.
 
         Parameters
         ----------
-        value
+        val
             The value to find in the domain.
 
         Returns
