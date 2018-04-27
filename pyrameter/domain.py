@@ -376,7 +376,7 @@ class ExhaustiveDomain(Domain):
         if bound:
             idx = min(len(self.domain) - 1, max(0, idx))
         try:
-            val = self.domain[int(round(idx))]
+            val = self.domain[int(idx)]
         except IndexError:
             val = None
         return val
