@@ -83,6 +83,9 @@ class Scope(object):
     def __contains__(self, elem):
         return elem in self.children
 
+    def __getitem__(self, key):
+        return self.children[key]
+
     def add_child(self, name, val):
         """Add a child domain or Scope to this Scopeself.
 
