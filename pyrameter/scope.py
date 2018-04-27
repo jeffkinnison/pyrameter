@@ -86,6 +86,12 @@ class Scope(object):
     def __getitem__(self, key):
         return self.children[key]
 
+    def __eq__(self, other):
+        for k, v in self.children.items():
+            if k not in other.children or other.children[k] != v:
+                return False
+        return True
+
     def add_child(self, name, val):
         """Add a child domain or Scope to this Scopeself.
 
