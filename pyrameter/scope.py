@@ -64,6 +64,7 @@ class Scope(object):
             model = 'random'
 
         self.children = {}
+
         for arg in args:
             key, val = arg
             key = str(key)
@@ -87,10 +88,14 @@ class Scope(object):
         return self.children[key]
 
     def __eq__(self, other):
-        for k, v in self.children.items():
-            if k not in other.children or other.children[k] != v:
+        if self is not other and self.children != other.children:
                 return False
+            #for k, v in self.children.items():
+            #    if k not in other.children or other.children[k] != v:
         return True
+
+    def __str__(self):
+        return "Scope with children [{}]".format(self.children)
 
     def add_child(self, name, val):
         """Add a child domain or Scope to this Scopeself.
