@@ -247,10 +247,13 @@ class DiscreteDomain(Domain):
         The value at ``idx`` in the domain if the domain is discrete, else
         return the index.
         """
+        print(idx)
         if bound:
-            idx = min(len(self.domain), max(0, idx))
+            idx = int(round(idx))
+            idx = min(len(self.domain) - 1, max(0, idx))
         try:
-            val = self.domain[int(round(idx))]
+            print(idx)
+            val = self.domain[idx]
         except IndexError:
             val = None
         return val
