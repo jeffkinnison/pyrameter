@@ -77,6 +77,12 @@ class Scope(object):
     def __iter__(self):
         return self.children
 
+    def __len__(self):
+        return len(self.children)
+
+    def __contains__(self, elem):
+        return elem in self.children
+
     def add_child(self, name, val):
         """Add a child domain or Scope to this Scopeself.
 
