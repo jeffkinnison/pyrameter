@@ -19,6 +19,7 @@ class TPEModel(RandomSearchModel):
         self.n_samples = n_samples
         self.warm_up = warm_up
 
+
     def generate(self):
         if len(self.results) < self.warm_up or len(self.results) % self.warm_up == 0:
             params = super(TPEModel, self).generate()
