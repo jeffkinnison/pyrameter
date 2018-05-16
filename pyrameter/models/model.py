@@ -14,7 +14,7 @@ class InvalidModelError(Exception):
     def __init__(self, model):
         msg = '{} is not a valid pyrameter.models.Model.'.format(model)
         msg += '\nDid you set up your models with pyrameter.build()?'
-        super(InvalidDomainError, self).__init__(msg)
+        super(InvalidModelError, self).__init__(msg)
 
 
 class InvalidDomainError(Exception):
