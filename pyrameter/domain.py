@@ -19,10 +19,11 @@ class Domain(object):
     ``path`` is automatically computed when models are created during the
     splitting process.
     """
-    def __init__(self, domain=None, path=''):
+    def __init__(self, domain=None, path='', callback=None):
         self.id = str(uuid.uuid4())
         self.domain = domain
         self.path = path
+        self.callback = callback if callable(callback) else lambda x: x
         self.__complexity = None
 
     def __getitem__(self, key):
@@ -110,8 +111,10 @@ class ContinuousDomain(Domain):
     kws
         Additional keyword arguments to parameterize ``domain``.
     """
-    def __init__(self, domain, path='', *args, **kws):
-        super(ContinuousDomain, self).__init__(domain(*args, **kws), path=path)
+    def __init__(self, domain, path='', callback=None, *args, **kws):
+        super(ContinuousDomain, self).__init__(domain(*args, **kws),
+                                               path=path,
+                                               callback=callback)
 
     @property
     def complexity(self):
@@ -144,7 +147,7 @@ class ContinuousDomain(Domain):
         value : float
             A value drawn from this domain's probability distribution.
         """
-        return self.domain.rvs()
+        return self.callback(self.domain.rvs())
 
     def to_json(self):
         """Convert this domain into a JSON-serializable format.
