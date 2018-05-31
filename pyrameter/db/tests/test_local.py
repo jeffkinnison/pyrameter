@@ -4,7 +4,7 @@ from pyrameter.db.local import JsonStorage
 from pyrameter.models.model import Model
 
 from pyrameter.models.model import Model, Result, Value
-from pyrameter.domains import ContinuousDomain, DiscreteDomain
+from pyrameter.domain import ContinuousDomain, DiscreteDomain
 
 import os
 import weakref
@@ -12,7 +12,7 @@ import weakref
 from scipy.stats import uniform
 
 
-@pytest.scope('module')
+@pytest.fixture(scope='module')
 def setup_dummy_models():
     d1 = ContinuousDomain(uniform, loc=0, scale=1)
     d2 = DiscreteDomain([1, 2, 3, 4])
