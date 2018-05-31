@@ -1,6 +1,7 @@
 import pytest
 
 from pyrameter.db.local import JsonStorage
+from pyrameter.models.model import Model
 
 from pyrameter.models.model import Model, Result, Value
 from pyrameter.domains import ContinuousDomain, DiscreteDomain
@@ -70,4 +71,7 @@ class TestJsonStorage(object):
         pass
 
     def test_save(self, tmpdir):
-        pass
+        s = JsonStorage(tmpdir.strpath)
+        assert s.path == os.path.join(tmpdir.strpath, 'results.json')
+
+        # Test with no models
