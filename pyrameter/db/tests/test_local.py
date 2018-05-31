@@ -2,7 +2,49 @@ import pytest
 
 from pyrameter.db.local import JsonStorage
 
+from pyrameter.models.model import Model, Result, Value
+from pyrameter.domains import ContinuousDomain, DiscreteDomain
+
 import os
+import weakref
+
+from scipy.stats import uniform
+
+
+@pytest.scope('module')
+def setup_dummy_models():
+    d1 = ContinuousDomain(uniform, loc=0, scale=1)
+    d2 = DiscreteDomain([1, 2, 3, 4])
+
+    r1 = Result(None, loss=0.37276)
+    r2 = Result(None, loss=1.346)
+
+    models = []
+
+    models.append(Model())
+    models.append(Model(domains=[d1]))
+    models.append(Model(domains=[d2]))
+    models.append(Model(domains=[d1, d2]))
+
+    m = Model()
+    r1 = Result(m, loss=0.37276)
+    m.add_result(r1)
+    models.append(m)
+
+    m = Model(domains=[d1])
+    r1 = Result(m, loss=0.37276)
+    m.add_result(r1)
+    models.append(m)
+
+    m = Model(domains=[d1])
+    r1 = Result(m, loss=0.37276)
+    m.add_result(r1)
+    models.append(m)
+
+
+@pytest.fixture(scope='module')
+def save_dummy_models():
+    pass
 
 
 class TestJsonStorage(object):
