@@ -268,12 +268,9 @@ class Result(object):
     id : str or int
 
     """
-    def __init__(self, model, loss=None, results=None, values=None):
+    def __init__(self, model=None, loss=None, results=None, values=None):
         self.id = str(uuid.uuid4())
-        if isinstance(model, Model):
-            self.model = weakref.ref(model)
-        else:
-            raise InvalidModelError(model)
+        self.model = model
         self.loss = loss
         self.results = results
         self.values = []
@@ -281,6 +278,19 @@ class Result(object):
         values = [values] if not isinstance(values, list) else values
         for value in values:
             self.add_value(value)
+
+    @property
+    def model(self):
+        return self._model
+
+    @model.setter
+    def model(self, val):
+        if isinstance(val, Model):
+            self._model = weakref.ref(val)
+        elif val is None:
+            self._model = val
+        else:
+            raise InvalidModelError(val)
 
     def add_value(self, value):
         """Add a value to this result.
@@ -312,7 +322,7 @@ class Result(object):
             'loss': self.loss,
             'results': self.results,
             'values': [v.to_json() for v in self.values],
-            'model': self.model().id
+            'model': self.model().id if self.model is not None else None
         }
 
 

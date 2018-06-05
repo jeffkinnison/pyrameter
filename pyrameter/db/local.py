@@ -66,7 +66,7 @@ class JsonStorage(object):
             try:
                 with open(current_path, 'r') as f:
                     models = json.load(f)
-            except OSError, json.JSONDecodeError:
+            except (OSError, json.JSONDecodeError):
                 models = None
                 current_path = os.path.join(
                     path, ''.join([path, '_{}'.format(current_backup), ext]))
