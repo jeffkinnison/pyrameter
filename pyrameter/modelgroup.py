@@ -82,7 +82,7 @@ class ModelGroup(object):
         """
         try:
             model = self.models.pop(model_id)
-            self.model_ids.pop(model_id)
+            self.model_ids.remove(model_id)
         except KeyError, IndexError:
             model = None
         return None
