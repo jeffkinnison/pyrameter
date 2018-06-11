@@ -89,7 +89,7 @@ class ModelGroup(object):
         """
         try:
             model = self.models.pop(model_id)
-            self.model_ids.pop(model_id)
+            self.model_ids.remove(model_id)
         except (KeyError, IndexError):
             model = None
         return None
@@ -184,7 +184,7 @@ class ModelGroup(object):
             Additional values to store.
         """
         if model_id in self.models:
-            self.models[model_id].register_result(loss, results=results)
+            self.models[model_id].register_result(result_id, loss, results=results)
         else:
             msg = 'No model found with id {}'.format(model_id)
             raise KeyError(msg)
