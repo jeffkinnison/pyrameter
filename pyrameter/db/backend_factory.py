@@ -47,7 +47,7 @@ def backend_factory(path, *args, **kwargs):
     if os.path.isfile(path) or os.path.isdir(path):
         from pyrameter.db.local import JsonStorage
         return JsonStorage(path, *args, **kwargs)
-    elif path.find('mongodb://') >= 0:
+    elif path.find('mongodb://') == 0:
         from pyrameter.db.mongo import MongoStorage
         return MongoStorage(path, *args, **kwargs)
     else:
