@@ -1,3 +1,4 @@
+from .build import build
 from .scope import Scope
 from .domain import ContinuousDomain, DiscreteDomain, ExhaustiveDomain
 
