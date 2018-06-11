@@ -145,6 +145,36 @@ class Model(object):
         if not self.recompute_priority and should_update:
             self.recompute_priority = True
 
+    def register_result(self, result_id, loss, results=None):
+        """Update an existing Result by id.
+
+        Parameters
+        ----------
+        result_id : str
+            The result to update.
+        loss : float
+            The loss value of this result.
+        results : dict, optional
+            Key/value pairs of additional information to store with the result.
+
+        Notes
+        -----
+        If the given result does not exist, a new result will be created with
+        the supplied loss and results dictionary.
+        """
+        found = False
+        for r in self.results:
+            if r.id == result_id:
+                r.loss = loss
+                r.results = results
+                found = True
+
+        if not found:
+            msg = 'No result with id {} found in this model.'.format(result_id)
+            msg += ' Did you generate the hyperparameter values with '
+            msg += '`Model.generate()`?'
+            raise KeyError(msg)
+
     def copy(self):
         """Make a copy of this model.
 
