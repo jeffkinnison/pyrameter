@@ -184,7 +184,7 @@ class ModelGroup(object):
             Additional values to store.
         """
         if model_id in self.models:
-            self.models[model_id].register_result(loss, results=results)
+            self.models[model_id].register_result(result_id, loss, results=results)
         else:
             msg = 'No model found with id {}'.format(model_id)
             raise KeyError(msg)
