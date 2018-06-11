@@ -1,6 +1,10 @@
+import os
+
 import scipy.stats
 
 from pyrameter.models.model import Model
+from pyrameter.db import backend_factory
+
 
 class ModelGroup(object):
     """Collection of models in a hyperparameter search.
@@ -22,13 +26,16 @@ class ModelGroup(object):
         The ids of the models in this group. Used for sorting and selecting
         models during hyperparameter generation.
     """
-    def __init__(self, models=None, complexity_sort=True, priority_sort=True):
+    def __init__(self, models=None, backend=None, complexity_sort=True,
+                 priority_sort=True):
         self.models = {}
         self.model_ids = []
 
         models = [models] if not isinstance(models, list) else models
         for model in models:
             self.add_model(model)
+
+        self.backend = backend_factory(backend)
 
     def __contains__(self, id):
         return id in self.models
@@ -83,7 +90,7 @@ class ModelGroup(object):
         try:
             model = self.models.pop(model_id)
             self.model_ids.remove(model_id)
-        except KeyError, IndexError:
+        except (KeyError, IndexError):
             model = None
         return None
 
@@ -108,13 +115,13 @@ class ModelGroup(object):
         if self.complexity_sort:
             self.model_ids.sort(key=lambda m: self.models[m].complexity,
                                 reverse=True)
-            for i in range(lenself.model_ids)):
+            for i in range(len(self.model_ids)):
                 self.models[i].rank *= i
 
         if self.priority_sort:
             self.model_ids.sort(key=lambda m: self.models[m].priority,
                                 reverse=True)
-            for i in range(lenself.model_ids)):
+            for i in range(len(self.model_ids)):
                 self.models[i].rank *= i
 
         self.model_ids.sort(key=lambda m: self.models[m].rank, reverse=True)
@@ -148,21 +155,21 @@ class ModelGroup(object):
         if not model_id:
             if self.complexity_sort or self.priority_sort:
                 p = np.array([scipy.stats.planck.pmf(i, 0.5)
-                            for i in range(len(self.models))])
+                             for i in range(len(self.models))])
             else:
                 p = np.ones(len(self.models))
             p = p / p.sum()
             idx = np.choice(np.arange(len(self.models)), p=p)
-            params = (self.model_ids[idx],
-                      self.models[model_ids[idx]].generate())
+            params = (self.model_ids[idx],) + \
+                self.models[model_ids[idx]].generate()
         else:
             try:
-                params = (model_id, self.models[model_id].generate())
+                params = (model_id,) + self.models[model_id].generate()
             except KeyError:
                 params = (None, {})
         return params
 
-    def add_result(model_id, result_id, loss, results):
+    def register_result(model_id, result_id, loss, results=None):
         """Add a result to the given model.
 
         Parameters
@@ -173,7 +180,14 @@ class ModelGroup(object):
             The id of this result if available.
         loss : float
             The loss value associated with this result.
-        results : dict
+        results : dict, optional
             Additional values to store.
         """
-        pass
+        if model_id in self.models:
+            self.models[model_id].register_result(loss, results=results)
+        else:
+            msg = 'No model found with id {}'.format(model_id)
+            raise KeyError(msg)
+
+    def save(self):
+        self.backend.save([self.models[m] for m in self.model_ids])

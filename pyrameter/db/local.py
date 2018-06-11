@@ -2,9 +2,10 @@ import json
 import os
 
 
+from pyrameter.db.base import BaseStorage
 from pyrameter.models.model import Model
 
-class JsonStorage(object):
+class JsonStorage(BaseStorage):
     """Local JSON-based model storage.
 
     Parameters
@@ -24,10 +25,11 @@ class JsonStorage(object):
 
     See Also
     --------
-    pyrameter.models.model.Model.to_json
-    pyrameter.models.model.Result.to_json
-    pyrameter.models.model.Value.to_json
-    pyrameter.domains.Domain.to_json
+    `pyrameter.db.base.BaseStorage`
+    `pyrameter.models.model.Model.to_json`
+    `pyrameter.models.model.Result.to_json`
+    `pyrameter.models.model.Value.to_json`
+    `pyrameter.domains.Domain.to_json`
     """
 
     def __init__(self, path, keep_previous=1):
