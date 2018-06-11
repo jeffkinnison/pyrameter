@@ -1,5 +1,5 @@
 from pyrameter.db import backend_factory
-from pyrameter.model_group import ModelGroup
+from pyrameter.modelgroup import ModelGroup
 
 
 def build(specification, db=None, method='random', *args, **kwargs):
