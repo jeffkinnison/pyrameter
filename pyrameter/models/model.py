@@ -110,6 +110,23 @@ class Model(object):
     def __repr__(self):
         return str(self)
 
+    def __call__(self):
+        params = self.generate()
+        r = Result(model=self)
+        self.add_result(r)
+
+        outparams = {}
+        for i in range(len(params)):
+            r.add_value(Value(params[i], self.domains[i]))
+            path = self.domains[i].path.split('/')
+            curr = outparams
+            for p in path[:-1]:
+                if p not in curr:
+                    curr[p] = {}
+                curr = curr[p]
+            curr[path[-1]] = params[i]
+        return r.id, outparams
+
     def add_domain(self, domain):
         """Add a domain to this model.
 
