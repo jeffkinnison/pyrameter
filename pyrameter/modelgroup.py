@@ -31,14 +31,19 @@ class ModelGroup(object):
         self.models = {}
         self.model_ids = []
 
-        models = [models] if not isinstance(models, list) else models
-        for model in models:
-            self.add_model(model)
+        if models is not None:
+            models = [models] if not isinstance(models, list) else models
+            for model in models:
+                self.add_model(model)
 
-        self.backend = backend_factory(backend)
+        self.backend = backend_factory(backend) \
+            if backend is not None else None
 
     def __contains__(self, id):
         return id in self.models
+
+    def __getitem__(self, model_id):
+        return self.models[model_id]
 
     def __eq__(self, other):
         return all(
@@ -47,6 +52,9 @@ class ModelGroup(object):
                     for _, i in self.models.items()]
             )
         )
+
+    def __len__(self):
+        return len(self.model_ids)
 
     def __str__(self):
         s = '\n'.join([str(self.models[m]) for m in self.model_ids])
@@ -161,10 +169,10 @@ class ModelGroup(object):
             p = p / p.sum()
             idx = np.choice(np.arange(len(self.models)), p=p)
             params = (self.model_ids[idx],) + \
-                self.models[model_ids[idx]].generate()
+                self.models[model_ids[idx]]()
         else:
             try:
-                params = (model_id,) + self.models[model_id].generate()
+                params = (model_id,) + self.models[model_id]()
             except KeyError:
                 params = (None, {})
         return params
