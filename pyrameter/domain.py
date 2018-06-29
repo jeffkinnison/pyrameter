@@ -24,7 +24,7 @@ class Domain(object):
         self.domain = domain
         self.path = path
         self.callback = callback if callable(callback) else lambda x: x
-        self.__complexity = None
+        self._complexity = None
 
     def __getitem__(self, key):
         if hasattr(self, key):
@@ -134,10 +134,10 @@ class ContinuousDomain(Domain):
             (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
             Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
         """
-        if self.__complexity is None:
+        if self._complexity is None:
             a, b = self.domain.interval(.99)
-            self.__complexity = 2.0 + np.linalg.norm(b - a)
-        return self.__complexity
+            self._complexity = 2.0 + np.linalg.norm(b - a)
+        return self._complexity
 
     def generate(self, index=False):
         """Generate a value from this domain.
@@ -210,9 +210,9 @@ class DiscreteDomain(Domain):
             (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
             Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
         """
-        if self.__complexity is None:
-            self.__complexity = 2.0 - (1.0 / len(self.domain))
-        return self.__complexity
+        if self._complexity is None:
+            self._complexity = 2.0 - (1.0 / len(self.domain))
+        return self._complexity
 
     def generate(self, index=False):
         """Generate a value from this domain.
@@ -336,9 +336,9 @@ class ExhaustiveDomain(Domain):
             (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
             Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
         """
-        if self.__complexity is None:
-            self.__complexity = 2.0 - (1.0 / len(self.domain))
-        return self.__complexity
+        if self._complexity is None:
+            self._complexity = 2.0 - (1.0 / len(self.domain))
+        return self._complexity
 
     def generate(self, index=False):
         """Generate a value from this domain.

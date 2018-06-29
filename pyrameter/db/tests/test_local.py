@@ -11,6 +11,8 @@ import weakref
 
 from scipy.stats import uniform
 
+import json
+import ast
 
 @pytest.fixture(scope='module')
 def setup_dummy_models():
@@ -42,6 +44,8 @@ def setup_dummy_models():
     m.add_result(r1)
     models.append(m)
 
+    return models
+
 
 @pytest.fixture(scope='module')
 def save_dummy_models():
@@ -68,10 +72,44 @@ class TestJsonStorage(object):
             JsonStorage('/foo/bar/baz.json')
 
     def test_load(self, tmpdir):
-        pass
-
-    def test_save(self, tmpdir):
         s = JsonStorage(tmpdir.strpath)
-        assert s.path == os.path.join(tmpdir.strpath, 'results.json')
+
+
+    def test_save(self, tmpdir, setup_dummy_models):
+        s = JsonStorage(tmpdir.strpath)
 
         # Test with no models
+        s.save([])
+        assert os.path.isfile(os.path.join(tmpdir.strpath, 'results.json'))
+
+        # Test with single model
+        models = []
+        models.append(Model())
+        s.save(models)
+
+        json_list = []
+        for model in models:
+            json_list.append(model.to_json())
+        json_list = json.dumps(json_list)
+
+        with open(os.path.join(tmpdir.strpath, 'results.json')) as json_file:
+            data = json.load(json_file)
+            data = json.dumps(data)
+
+        assert data == json_list
+
+        # Test with multiple models
+        models = setup_dummy_models
+        s.save(models)
+
+        json_list = []
+        for model in models:
+            json_list.append(model.to_json())
+        json_list = json.dumps(json_list)
+        
+        with open(os.path.join(tmpdir.strpath, 'results.json')) as json_file:
+            data = json.load(json_file)
+            data = json.dumps(data)
+
+        assert data == json_list
+
