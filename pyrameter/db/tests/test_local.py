@@ -71,8 +71,25 @@ class TestJsonStorage(object):
         with pytest.raises(OSError):
             JsonStorage('/foo/bar/baz.json')
 
-    def test_load(self, tmpdir):
+    def test_load(self, tmpdir, setup_dummy_models):
         s = JsonStorage(tmpdir.strpath)
+
+        models = setup_dummy_models
+
+        # convert models to json
+        json_models = []
+        for model in models:
+            if isinstance(model, Model):
+                m = model.to_json()
+            json_models.append(m)
+
+        # save models to file
+        with open(os.path.join(tmpdir.strpath, 'results.json'), 'w') as json_file:
+            json.dump(json_models, json_file)
+
+        loaded = s.load()
+
+        assert loaded == models
 
 
     def test_save(self, tmpdir, setup_dummy_models):
