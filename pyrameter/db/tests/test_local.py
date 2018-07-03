@@ -13,12 +13,9 @@ from scipy.stats import uniform
 
 
 @pytest.fixture(scope='module')
-def setup_dummy_models():
+def dummy_models():
     d1 = ContinuousDomain(uniform, loc=0, scale=1)
     d2 = DiscreteDomain([1, 2, 3, 4])
-
-    r1 = Result(None, loss=0.37276)
-    r2 = Result(None, loss=1.346)
 
     models = []
 
@@ -33,19 +30,48 @@ def setup_dummy_models():
     models.append(m)
 
     m = Model(domains=[d1])
-    r1 = Result(m, loss=0.37276)
+    r1 = Result(m, loss=0.0241)
     m.add_result(r1)
     models.append(m)
 
     m = Model(domains=[d1])
     r1 = Result(m, loss=0.37276)
+    r2 = Result(m, loss=0.0241)
+    m.add_result(r1)
+    m.add_result(r2)
+    models.append(m)
+
+    m = Model(domains=[d2])
+    r1 = Result(m, loss=0.0241)
     m.add_result(r1)
     models.append(m)
 
+    m = Model(domains=[d2])
+    r1 = Result(m, loss=0.37276)
+    r2 = Result(m, loss=0.0241)
+    m.add_result(r1)
+    m.add_result(r2)
+    models.append(m)
+
+    m = Model(domains=[d1, d2])
+    r1 = Result(m, loss=0.0241)
+    m.add_result(r1)
+    models.append(m)
+
+    m = Model(domains=[d1, d2])
+    r1 = Result(m, loss=0.37276)
+    r2 = Result(m, loss=0.0241)
+    m.add_result(r1)
+    m.add_result(r2)
+    models.append(m)
+
+    return models
+
 
 @pytest.fixture(scope='module')
-def save_dummy_models():
-    pass
+def save_dummy_models(dummy_models, tmpdir):
+    for m in dummy_models:
+        with m.open()
 
 
 class TestJsonStorage(object):
