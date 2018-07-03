@@ -26,8 +26,8 @@ def build(specification, db=None, method='random', *args, **kwargs):
     `pyrameter.db.backend_factory`
     `pyrameter.models.model_factory`
     """
-    scope.model = method
-    models = scope.split()
+    specification.model = method
+    models = specification.split()
     backend = backend_factory(db, *args, **kwargs)
     model_group = ModelGroup(models=models, backend=backend)
     return model_group
