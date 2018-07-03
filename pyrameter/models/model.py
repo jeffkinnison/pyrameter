@@ -249,7 +249,7 @@ class Model(object):
         # Only compute complexity if requested and an update is necessary
         if self.update_complexity and self.domain_added:
             self._complexity = 1.0
-            for domain in self.domain:
+            for domain in self.domains:
                 self._complexity *= domain.complexity
         return self._complexity
 

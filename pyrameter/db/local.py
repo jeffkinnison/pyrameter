@@ -95,9 +95,8 @@ class JsonStorage(BaseStorage):
         """
 
         json_compatible = []
-        for i in range(models):
-            model = models[i]
-            if isinstance(m, Model):
+        for model in models:
+            if isinstance(model, Model):
                 m = model.to_json()
             else:
                 raise TypeError('{} is not a valid pyrameter model.'.format(
