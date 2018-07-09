@@ -32,10 +32,10 @@ class TestDomain(object):
 
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
-        assert d.to_json() == {'path': ''}
+        assert d.to_json() == {'type': d.__class__.__name__, 'path': ''}
 
         d = self.__domain_class__(self.__default_domain__, path='a')
-        assert d.to_json() == {'path': 'a'}
+        assert d.to_json() == {'type': d.__class__.__name__, 'path': 'a'}
 
 
 class TestContinuousDomain(TestDomain):
@@ -67,6 +67,7 @@ class TestContinuousDomain(TestDomain):
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
         res = {
+            'type': d.__class__.__name__,
             'path': '',
             'distribution': 'uniform',
             'args': tuple(),
@@ -95,6 +96,7 @@ class TestDiscreteDomain(TestDomain):
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
         res = {
+            'type': d.__class__.__name__,
             'path': '',
             'domain': self.__default_domain__
         }
@@ -122,6 +124,7 @@ class TestExhaustiveDomain(TestDomain):
     def test_to_json(self):
         d = self.__domain_class__(self.__default_domain__)
         res = {
+            'type': d.__class__.__name__,
             'path': '',
             'domain': self.__default_domain__,
             'idx': 0

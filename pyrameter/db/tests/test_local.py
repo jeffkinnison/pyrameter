@@ -147,4 +147,5 @@ class TestJsonStorage(object):
             data = json.load(json_file)
             data = json.dumps(data)
 
-        assert data == json_list
+        for i in range(len(json_list)):
+            assert data[i] == json_list[i]

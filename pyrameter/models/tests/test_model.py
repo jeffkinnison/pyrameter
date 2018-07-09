@@ -110,6 +110,7 @@ class TestValue(object):
             assert v.result() is r2
             assert v.domain() is d2
 
+        values = [True, False, 1, 1.0, (1,), [1], {'1': 1}]
         # Test initializing with invalid domains
         for val in values:
             with pytest.raises(InvalidDomainError):
