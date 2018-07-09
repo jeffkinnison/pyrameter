@@ -5,6 +5,7 @@ import os
 from pyrameter.db.base import BaseStorage
 from pyrameter.models.model import Model
 
+
 class JsonStorage(BaseStorage):
     """Local JSON-based model storage.
 
@@ -76,8 +77,12 @@ class JsonStorage(BaseStorage):
         if models is None:
             raise OSError('Could not load files from {}.'.format(self.path))
 
+        model_objs = []
+        for m in models:
+            model = Model.from_json(m)
+            model_objs.append(model)
 
-        return model_loader(models)
+        return model_objs
 
     def save(self, models):
         """Save the state of a set of models.
@@ -93,7 +98,8 @@ class JsonStorage(BaseStorage):
             Raised if a non-subclass of `pyramerter.models.model.Model` is
             encountered.
         """
-
+        if not isinstance(models, list):
+            models = [models]
         json_compatible = []
         for model in models:
             if isinstance(model, Model):
