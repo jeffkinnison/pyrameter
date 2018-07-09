@@ -117,6 +117,9 @@ class TestJsonStorage(object):
         # Test with no models
         s.save([])
         assert os.path.isfile(os.path.join(tmpdir.strpath, 'results.json'))
+        with open(os.path.join(tmpdir.strpath, 'results.json'), 'r') as f:
+            data = json.load(f)
+        assert data == []
 
         # Test with single model
         models = []
@@ -125,12 +128,10 @@ class TestJsonStorage(object):
 
         json_list = []
         for model in models:
-            json_list.append(model.to_json())
-        json_list = json.dumps(json_list)
+            json_list.append(json.loads(json.dumps(model.to_json())))
 
         with open(os.path.join(tmpdir.strpath, 'results.json')) as json_file:
             data = json.load(json_file)
-            data = json.dumps(data)
 
         assert data == json_list
 
@@ -140,12 +141,10 @@ class TestJsonStorage(object):
 
         json_list = []
         for model in models:
-            json_list.append(model.to_json())
-        json_list = json.dumps(json_list)
+            json_list.append(json.loads(json.dumps(model.to_json())))
 
         with open(os.path.join(tmpdir.strpath, 'results.json')) as json_file:
             data = json.load(json_file)
-            data = json.dumps(data)
 
         for i in range(len(json_list)):
             assert data[i] == json_list[i]
