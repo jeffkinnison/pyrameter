@@ -1,6 +1,3 @@
-from pyrameter.models.model import Model
-
-
 class InvalidModelError(Exception):
     """Raised when an invalid moded is suppled to get_model_class."""
     def __init__(self, model):
@@ -28,17 +25,19 @@ def get_model_class(model):
     InvalidModelError
         Raised when an invalid moded is suppled to get_model_class.
     """
+    from pyrameter.models.model import Model
+    from pyrameter.models.random_search import RandomSearchModel
+    from pyrameter.models.tpe import TPEModel
+    from pyrameter.models.gp import GPBayesModel
+
     if isinstance(model, Model):
         return model.__class__
     elif isinstance(model, str):
-        if model == 'random':
-            from pyrameter.models.random_search import RandomSearchModel
+        if model in ['random', RandomSearchModel.__name__]:
             model = RandomSearchModel
-        elif model == 'tpe':
-            from pyrameter.models.tpe import TPEModel
+        elif model in ['tpe', TPEModel.__name__]:
             model = TPEModel
-        elif model == 'gp':
-            from pyrameter.models.gp import GPBayesModel
+        elif model in ['gp', GPBayesModel.__name__]:
             model = GPBayesModel
         else:
             raise InvalidModelError(model)

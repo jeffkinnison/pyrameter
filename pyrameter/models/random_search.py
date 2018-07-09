@@ -38,6 +38,9 @@ class RandomSearchModel(Model):
        SHADHO: Massively Scalable Hardware-Aware Distributed Hyperparameter
        Optimization. arXiv preprint arXiv:1707.01428.
     """
+
+    TYPE = 'random'
+
     def generate(self):
         """Generate hyperparameter values.
 

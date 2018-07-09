@@ -5,6 +5,8 @@ from sklearn.mixture import GaussianMixture
 
 
 class TPEModel(RandomSearchModel):
+    TYPE = 'tpe'
+
     def __init__(self, id=None, domains=None, results=None,
                  update_complexity=True, priority_update_freq=10,
                  best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
@@ -18,7 +20,6 @@ class TPEModel(RandomSearchModel):
         self.best_split = best_split
         self.n_samples = n_samples
         self.warm_up = warm_up
-
 
     def generate(self):
         if len(self.results) < self.warm_up or len(self.results) % self.warm_up == 0:

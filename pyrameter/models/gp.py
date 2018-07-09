@@ -15,6 +15,9 @@ class GPBayesModel(RandomSearchModel):
     ----------
     id :
     """
+
+    TYPE = 'gp'
+
     def __init__(self, id=None, domains=None, results=None,
                  update_complexity=True, priority_update_freq=10, n_samples=10,
                  warm_up=10, **gp_kws):
