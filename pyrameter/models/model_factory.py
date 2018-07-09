@@ -33,11 +33,11 @@ def get_model_class(model):
     if isinstance(model, Model):
         return model.__class__
     elif isinstance(model, str):
-        if model in ['random', RandomSearchModel.__name__]:
+        if model in [u'random', RandomSearchModel.__name__]:
             model = RandomSearchModel
-        elif model in ['tpe', TPEModel.__name__]:
+        elif model in [u'tpe', TPEModel.__name__]:
             model = TPEModel
-        elif model in ['gp', GPBayesModel.__name__]:
+        elif model in [u'gp', GPBayesModel.__name__]:
             model = GPBayesModel
         else:
             raise InvalidModelError(model)

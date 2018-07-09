@@ -326,7 +326,6 @@ class Model(object):
         by the ``to_json`` class or any of its subclasses.
         """
         # Recreate the domains and results, get the model class
-        print(spec)
         domains = [Domain.from_json(d) for d in spec['domains']]
         results = [Result.from_json(r, domains) for r in spec['results']]
         model_class = get_model_class(spec['type'])

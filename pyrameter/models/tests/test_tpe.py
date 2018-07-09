@@ -54,7 +54,6 @@ class TestTPEModel(TestModel):
         m = self.__model_class__(domains=[d1, d2])
         for _ in range(1000):
             p = m.generate()
-            print(p)
             m.add_result(Result(m, loss=p['a'] * p['b'],
                                 values=[Value(p['a'], d1), Value(p['b'], d2)]))
             assert 'a' in p
