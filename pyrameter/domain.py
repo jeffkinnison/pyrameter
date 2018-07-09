@@ -1,6 +1,7 @@
 import uuid
 
 import numpy as np
+import scipy.stats
 from scipy.stats import randint
 
 
@@ -89,8 +90,20 @@ class Domain(object):
 
     def to_json(self):
         return {
+            'type': self.__class__.__name__,
             'path': self.path
         }
+
+    @staticmethod
+    def from_json(spec):
+        if spec['type'] == ContinuousDomain.__name__:
+            return ContinuousDomain(spec['distribution'], path=spec['path'],
+                                    *spec['args'], **spec['kws'])
+        elif spec['type'] == DiscreteDomain.__name__:
+            return DiscreteDomain(spec['domain'], path=spec['path'])
+        elif spec['type'] == ExhaustiveDomain.__name__:
+            return ExhaustiveDomain(spec['domain'], path=spec['path'],
+                                    idx=spec['idx'])
 
 
 class ContinuousDomain(Domain):
@@ -112,6 +125,8 @@ class ContinuousDomain(Domain):
         Additional keyword arguments to parameterize ``domain``.
     """
     def __init__(self, domain, path='', callback=None, *args, **kws):
+        if isinstance(domain, str):
+            domain = getattr(scipy.stats, domain)
         super(ContinuousDomain, self).__init__(domain(*args, **kws),
                                                path=path,
                                                callback=callback)
@@ -158,12 +173,11 @@ class ContinuousDomain(Domain):
             A dictionary representation of this domain containing only valid
             JSON values.
         """
-        return {
-            'path': self.path,
-            'distribution': self.domain.dist.name,
-            'args': self.domain.args,
-            'kws': self.domain.kwds
-        }
+        j = super(ContinuousDomain, self).to_json()
+        j.update({'distribution': self.domain.dist.name,
+                  'args': self.domain.args,
+                  'kws': self.domain.kwds})
+        return j
 
 
 class DiscreteDomain(Domain):
@@ -287,10 +301,9 @@ class DiscreteDomain(Domain):
             A dictionary representation of this domain containing only valid
             JSON values.
         """
-        return {
-            'path': self.path,
-            'domain': self.domain
-        }
+        j = super(DiscreteDomain, self).to_json()
+        j.update({'domain': self.domain})
+        return j
 
 
 class ExhaustiveDomain(Domain):
@@ -312,8 +325,8 @@ class ExhaustiveDomain(Domain):
     If a single, non-list object is provided to an ExhaustiveDomain, it will be
     wrapped in a list to represent a domain with a single value.
     """
-    def __init__(self, domain, path=''):
-        self.idx = 0
+    def __init__(self, domain, path='', idx=0):
+        self.idx = idx
         if not isinstance(domain, list):
             domain = [domain]
         super(ExhaustiveDomain, self).__init__(domain, path=path)
@@ -414,8 +427,6 @@ class ExhaustiveDomain(Domain):
             A dictionary representation of this domain containing only valid
             JSON values.
         """
-        return {
-            'path': self.path,
-            'domain': self.domain,
-            'idx': self.idx
-        }
+        j = super(ExhaustiveDomain, self).to_json()
+        j.update({'domain': self.domain, 'idx': self.idx})
+        return j

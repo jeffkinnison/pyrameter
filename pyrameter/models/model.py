@@ -1,4 +1,5 @@
 from pyrameter.domain import Domain
+from pyrameter.models.model_factory import get_model_class
 
 import copy
 import uuid
@@ -76,6 +77,9 @@ class Model(object):
        SHADHO: Massively Scalable Hardware-Aware Distributed Hyperparameter
        Optimization. arXiv preprint arXiv:1707.01428.
     """
+
+    TYPE = 'random'
+
     def __init__(self, id=None, domains=None, results=None,
                  update_complexity=True, priority_update_freq=10):
         self.id = str(uuid.uuid4()) if id is None else id
@@ -285,14 +289,53 @@ class Model(object):
         JSON-serializable format.
         """
         return {
+            'type': self.TYPE,
+            'id': self.id,
             'domains': [d.to_json() for d in self.domains],
             'results': [r.to_json() for r in self.results],
             'priority': self.priority,
             'complexity': self.complexity,
             'rank': self.rank,
-            'update_complexity': self.update_complexity,
-            'priority_update_freq': self.priority_update_freq
+            'model_parameters': {
+                'update_complexity': self.update_complexity,
+                'priority_update_freq': self.priority_update_freq
+            }
         }
+
+    @staticmethod
+    def from_json(spec):
+        """Create a model from a JSON-serialized format.
+
+        Parameters
+        ----------
+        spec : dict
+            The dictionary of metadata needed to create a model.
+
+        Returns
+        -------
+        model : pyrameter.models.Model
+            The model created from ``spec``.
+
+        See Also
+        --------
+        pyrameter.models.Model.to_json
+
+        Notes
+        -----
+        This method should be able to create a model from any dictionary output
+        by the ``to_json`` class or any of its subclasses.
+        """
+        # Recreate the domains and results, get the model class
+        print(spec)
+        domains = [Domain.from_json(d) for d in spec['domains']]
+        results = [Result.from_json(r, domains) for r in spec['results']]
+        model_class = get_model_class(spec['type'])
+        model = model_class(domains=domains,
+                            results=results,
+                            **spec['model_parameters'])
+        for r in model.results:
+            r.model = model
+        return model
 
 
 class Result(object):
@@ -334,7 +377,7 @@ class Result(object):
     def model(self, val):
         if isinstance(val, Model):
             self._model = weakref.ref(val)
-        elif val is None:
+        elif isinstance(val, str) or val is None:
             self._model = val
         else:
             raise InvalidModelError(val)
@@ -366,11 +409,22 @@ class Result(object):
         JSON-serializable format.
         """
         return {
+            'id': self.id,
             'loss': self.loss,
             'results': self.results,
             'values': [v.to_json() for v in self.values],
             'model': self.model().id if self.model is not None else None
         }
+
+    @staticmethod
+    def from_json(spec, domains):
+        values = [Value(spec['values'][i]['value'], domains[i], spec['id'])
+                  for i in range(len(spec['values']))]
+        result = Result(model=spec['model'],
+                        loss=spec['loss'],
+                        results=spec['results'],
+                        values=values)
+        return result
 
 
 class Value(object):
@@ -397,7 +451,7 @@ class Value(object):
 
         if isinstance(result, Result):
             self.result = weakref.ref(result)
-        elif result is None:
+        elif isinstance(result, str) or result is None:
             self.result = result
         else:
             raise InvalidResultError(result)
