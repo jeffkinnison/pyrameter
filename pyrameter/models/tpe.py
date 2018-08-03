@@ -25,7 +25,7 @@ class TPEModel(RandomSearchModel):
         if len(self.results) < self.warm_up or len(self.results) % self.warm_up == 0:
             params = super(TPEModel, self).generate()
         else:
-            params = {}
+            params = np.zeros((len(self.domains),))
 
             vec = self.results_to_feature_vector()
             features, losses = np.copy(vec[:, :-1]), np.copy(vec[:, -1])
@@ -50,12 +50,6 @@ class TPEModel(RandomSearchModel):
                 best = samples[np.argmax(np.squeeze(ei).ravel())]
 
                 domain = self.domains[j]
-                path = domain.path.split('/')
-                curr = params
-                for p in path[:-1]:
-                    if p not in curr:
-                        curr[p] = {}
-                    curr = curr[p]
-                curr[path[-1]] = domain.map_to_domain(best[0], bound=True)
+                params[j] += domain.map_to_domain(best[0], bound=True)
 
         return params

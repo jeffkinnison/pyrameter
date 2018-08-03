@@ -62,16 +62,10 @@ class GPBayesModel(RandomSearchModel):
 
             best = potentials[np.argmax(ei, axis=1)]
 
-            params = {}
+            params = np.zeros((len(self.domains),))
             for i in range(len(self.domains)):
                 domain = self.domains[i]
-                path = domain.path.split('/')
-                curr = params
-                for p in path[:-1]:
-                    if p not in curr:
-                        curr[p] = {}
-                    curr = curr[p]
-                curr[path[-1]] = domain.map_to_domain(best[i][0],
-                                                      bound=True)
+                params[i] += domain.map_to_domain(best[i][0],
+                                                  bound=True)
 
         return params

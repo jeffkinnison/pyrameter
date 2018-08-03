@@ -64,13 +64,7 @@ class RandomSearchModel(Model):
            hyper-parameter optimization. Journal of Machine Learning Research,
            13(Feb), 281-305.
         """
-        params = {}
+        params = []
         for domain in self.domains:
-            path = domain.path.split('/')
-            curr = params
-            for p in path[:-1]:
-                if p not in curr:
-                    curr[p] = {}
-                curr = curr[p]
-            curr[path[-1]] = domain.generate()
+            params.append(domain.generate())
         return params
