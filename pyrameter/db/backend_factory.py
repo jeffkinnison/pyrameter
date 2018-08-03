@@ -45,11 +45,11 @@ def backend_factory(path, *args, **kwargs):
     if isinstance(path, BaseStorage):
         return path
     try:
-        if path.find('mongodb://') == 0:
+        if isinstance(path, str) and path.find('mongodb://') == 0:
             from pyrameter.db.mongo import MongoStorage
             return MongoStorage(path, *args, **kwargs)
         else:
             from pyrameter.db.local import JsonStorage
-            return JsonStorage(path, *args, **kwargs)
+            return JsonStorage(path=path, *args, **kwargs)
     except (TypeError, AttributeError):
         raise InvalidDBPathError(path)
