@@ -1,5 +1,6 @@
 from pyrameter.db import backend_factory
 from pyrameter.modelgroup import ModelGroup
+from pyrameter.scope import Scope
 
 
 def build(specification, db=None, method='random', *args, **kwargs):
@@ -26,6 +27,8 @@ def build(specification, db=None, method='random', *args, **kwargs):
     `pyrameter.db.backend_factory`
     `pyrameter.models.model_factory`
     """
+    if isinstance(specification, dict):
+        specification = Scope(**specification)
     specification.model = method
     models = specification.split()
     backend = backend_factory(db, *args, **kwargs)
