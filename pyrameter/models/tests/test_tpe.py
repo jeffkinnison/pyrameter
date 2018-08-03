@@ -37,7 +37,7 @@ class TestTPEModel(TestModel):
         # Test with one continuous domain
         m = self.__model_class__(domains=[d1])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             m.add_result(Result(m, loss=p['a']**2, values=Value(p['a'], d1)))
             assert 'a' in p
             assert p['a'] >= -100.0 and p['a'] < 100
@@ -45,7 +45,7 @@ class TestTPEModel(TestModel):
         # Test with one continuous domain
         m = self.__model_class__(domains=[d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             m.add_result(Result(m, loss=p['b']**2, values=Value(p['b'], d2)))
             assert 'b' in p
             assert p['b'] >= -100 and p['b'] <= 100
@@ -53,7 +53,7 @@ class TestTPEModel(TestModel):
         # Test with one continuous and one discrete domain
         m = self.__model_class__(domains=[d1, d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             m.add_result(Result(m, loss=p['a'] * p['b'],
                                 values=[Value(p['a'], d1), Value(p['b'], d2)]))
             assert 'a' in p

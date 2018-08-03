@@ -17,21 +17,21 @@ class TestRandomSearchModel(TestModel):
         # Test with one continuous domain
         m = self.__model_class__(domains=[d1])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             assert 'a' in p
             assert p['a'] >= 0 and p['a'] < 1
 
         # Test with one discrete domain
         m = self.__model_class__(domains=[d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             assert 'b' in p
             assert p['b'] >= 0 and p['b'] < 1000
 
         # Test with one continuous and one discrete domain
         m = self.__model_class__(domains=[d1, d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             assert 'a' in p
             assert p['a'] >= 0 and p['a'] < 1
             assert 'b' in p
@@ -42,7 +42,7 @@ class TestRandomSearchModel(TestModel):
         d2.path = 'A/b'
         m = self.__model_class__(domains=[d1, d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             assert 'A' in p
             assert 'a' in p['A']
             assert p['A']['a'] >= 0 and p['A']['a'] < 1
@@ -54,7 +54,7 @@ class TestRandomSearchModel(TestModel):
         d2.path = 'A/b'
         m = self.__model_class__(domains=[d1, d2])
         for _ in range(1000):
-            p = m.generate()
+            p = m()[-1]
             assert 'A' in p
             assert 'B' in p
             assert 'a' in p['B']
