@@ -33,11 +33,16 @@ class JsonStorage(BaseStorage):
     `pyrameter.domains.Domain.to_json`
     """
 
-    def __init__(self, path, keep_previous=1):
+    def __init__(self, path=None, keep_previous=1):
+        if path is None:
+            path = os.getcwd()
+
         self.path = os.path.abspath(path)
 
         if os.path.isdir(self.path):
             self.path = os.path.join(self.path, 'results.json')
+            f = open(self.path, 'a')
+            f.close()
 
         if not os.path.exists(os.path.dirname(self.path)):
             raise OSError('Invalid save path: {}'.format(self.path))
