@@ -140,6 +140,9 @@ class Scope(object):
             cpath = '/'.join([path, child])
             cval = self.children[child]
 
+            if isinstance(cval, dict):
+                cval = Scope(**cval)
+
             # If a Scope, do DFS to process sub-scopes
             if isinstance(cval, Scope):
                 submodels = cval.split(path=cpath)
