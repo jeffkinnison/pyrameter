@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import scipy.stats
 
 from pyrameter.models.model import Model
@@ -38,6 +39,9 @@ class ModelGroup(object):
 
         self.backend = backend_factory(backend) \
             if backend is not None else None
+
+        self.complexity_sort = complexity_sort
+        self.priority_sort = priority_sort
 
     def __contains__(self, id):
         return id in self.models
@@ -81,6 +85,11 @@ class ModelGroup(object):
             msg = '{} is not an instance of pyrameter.models.Model'
             raise TypeError(msg.format(model))
 
+    def clear(self):
+        """Clear this model group of all models."""
+        self.models = {}
+        self.model_ids = []
+
     def remove_model(self, model_id):
         """Pop a model from the group.
 
@@ -100,7 +109,7 @@ class ModelGroup(object):
             self.model_ids.remove(model_id)
         except (KeyError, IndexError):
             model = None
-        return None
+        return model
 
     def sort_models(self):
         """Sort models by their complexity/priority rank.
@@ -167,9 +176,9 @@ class ModelGroup(object):
             else:
                 p = np.ones(len(self.models))
             p = p / p.sum()
-            idx = np.choice(np.arange(len(self.models)), p=p)
+            idx = np.random.choice(np.arange(len(self.models)), p=p)
             params = (self.model_ids[idx],) + \
-                self.models[model_ids[idx]]()
+                self.models[self.model_ids[idx]]()
         else:
             try:
                 params = (model_id,) + self.models[model_id]()
@@ -177,7 +186,82 @@ class ModelGroup(object):
                 params = (None, {})
         return params
 
-    def register_result(model_id, result_id, loss, results=None):
+    def optimal(self, mode='best', count=1):
+        """Get the optimal observed result(s) from among the models.
+
+        Parameters
+        ----------
+        mode : {'best','model'}
+            The format of the results. If "best", return the best observed
+            result from across all models. If "model", return the best observed
+            result for each model.
+        count : int, optional
+            The number of results to return. If mode is "model", return this
+            many results for each model. Default 1.
+
+        Returns
+        -------
+        optimal : dict
+            A dictionary of lists of results indexed by model id.
+        """
+        if mode == 'model':
+            results = self._optimal_model_mode(count)
+        else:
+            results = self._optimal_best_mode(count)
+        return results
+
+    def _optimal_best_mode(self, count):
+        """Get the optimal observed results across all models.
+
+         Parameters
+         ----------
+         count : int
+             The number of results to return. If mode is "model", return this
+             many results for each model.
+
+        Returns
+        -------
+        optimal : dict
+            A dictionary of lists of results indexed by model id.
+        """
+        optimal = []
+        results = []
+
+        # Concatenate the results from each model into a single list
+        for mid in self.model_ids:
+            model = self.models[mid]
+            results.extend(
+                [r.to_json() for r in model.results if r.loss is not None])
+
+        # Sort the results and extract the ``count`` best.
+        results.sort(key=lambda x: x['loss'])
+        results = {r['model']: r for r in results[:count]}
+        return results
+
+    def _optimal_model_mode(self, count):
+        """Get the optimal observed results from each model.
+
+         Parameters
+         ----------
+         count : int
+             The number of results to return. If mode is "model", return this
+             many results for each model.
+
+        Returns
+        -------
+        optimal : dict
+            A dictionary of lists of results indexed by model id.
+        """
+        optimal = {}
+        for mid in self.model_ids:
+            model = self.models[mid]
+            results = sorted(
+                [r.to_json() for r in model.results if r.loss is not None],
+                key=lambda x: x['loss'])
+            optimal[mid] = results[:count]
+        return optimal
+
+    def register_result(self, model_id, result_id, loss, results=None):
         """Add a result to the given model.
 
         Parameters
@@ -192,10 +276,19 @@ class ModelGroup(object):
             Additional values to store.
         """
         if model_id in self.models:
-            self.models[model_id].register_result(result_id, loss, results=results)
+            submissions, params = \
+                self.models[model_id].register_result(result_id,
+                                                      loss,
+                                                      results=results)
         else:
             msg = 'No model found with id {}'.format(model_id)
             raise KeyError(msg)
+
+        return submissions, params
+
+    @property
+    def result_count(self):
+        return sum([len(m.results) for m in self.models.values()])
 
     def save(self):
         self.backend.save([self.models[m] for m in self.model_ids])

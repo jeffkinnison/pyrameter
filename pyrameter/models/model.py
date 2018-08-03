@@ -3,6 +3,7 @@ from pyrameter.models.model_factory import get_model_class
 
 import copy
 import uuid
+import warnings
 import weakref
 
 import numpy as np
@@ -125,9 +126,10 @@ class Model(object):
             path = self.domains[i].path.split('/')
             curr = outparams
             for p in path[:-1]:
-                if p not in curr:
-                    curr[p] = {}
-                curr = curr[p]
+                if p != '':
+                    if p not in curr:
+                        curr[p] = {}
+                    curr = curr[p]
             curr[path[-1]] = params[i]
         return r.id, outparams
 
@@ -183,18 +185,33 @@ class Model(object):
         If the given result does not exist, a new result will be created with
         the supplied loss and results dictionary.
         """
-        found = False
+        found = None
         for r in self.results:
             if r.id == result_id:
                 r.loss = loss
                 r.results = results
-                found = True
+                r.submissions += 1
+                found = r
 
-        if not found:
+        if found is None:
             msg = 'No result with id {} found in this model.'.format(result_id)
             msg += ' Did you generate the hyperparameter values with '
             msg += '`Model.generate()`?'
             raise KeyError(msg)
+
+        params = {}
+        if loss is None:
+            for value in found.values:
+                domain = value.domain()
+                curr = params
+                path = domain.path.split('/')
+                for p in path[:-1]:
+                    if p not in params:
+                        curr[p] = {}
+                    curr = curr[p]
+                curr[path[-1]] = value.value
+
+        return found.submissions, params
 
     def copy(self):
         """Make a copy of this model.
@@ -231,9 +248,10 @@ class Model(object):
         vec = np.zeros((len(self.results), len(self.results[0].values) + 1),
                        dtype=np.float32)
         for i in range(len(self.results)):
-            vec[i, -1] += self.results[i].loss
-            for j in range(len(self.results[i].values)):
-                vec[i, j] += self.results[i].values[j].to_numeric()
+            if self.results[i].loss is not None:
+                vec[i, -1] += self.results[i].loss
+                for j in range(len(self.results[i].values)):
+                    vec[i, j] += self.results[i].values[j].to_numeric()
         return vec
 
     def generate(self):
@@ -261,19 +279,22 @@ class Model(object):
     def priority(self):
         # Only compute priority if requested and an update is necessary
         if self.priority_update_freq >= 0 and self.recompute_priority:
-            vec = self.__results_to_feature_vector()
+            vec = self.results_to_feature_vector()
 
             split = int(np.ceil(vec.shape[0] *
                         (0.8 if vec.shape[0] < 10 else 1.0)))
             scales = np.zeros((50,), dtype=np.float32)
 
-            for _ in range(scales.shape[0]):
-                np.shuffle(vec)
+            for i in range(scales.shape[0]):
+                np.random.shuffle(vec)
                 features = np.copy(vec[:split, :-1])
                 losses = np.reshape(np.copy(vec[:split, -1]), (-1, 1))
                 est = np.random.uniform(0.1, 2.0)
-                gp = GaussianProcessRegressor(kernel=RBF(length_scale=est))
-                gp.fit(features, losses)
+                gp = GaussianProcessRegressor(kernel=RBF(length_scale=est),
+                                              alpha=1e-5)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    gp.fit(features, losses)
                 scales[i] += (1.0 / gp.kernel.theta[0])
 
             self._priority = np.linalg.norm(scales.max() - scales.min())
@@ -293,7 +314,7 @@ class Model(object):
             'id': self.id,
             'domains': [d.to_json() for d in self.domains],
             'results': [r.to_json() for r in self.results],
-            'priority': self.priority,
+            'priority': float(self.priority),
             'complexity': self.complexity,
             'rank': self.rank,
             'model_parameters': {
@@ -363,6 +384,7 @@ class Result(object):
         self.loss = loss
         self.results = results
         self.values = []
+        self.submissions = 0
         values = [] if values is None else values
         values = [values] if not isinstance(values, list) else values
         for value in values:
