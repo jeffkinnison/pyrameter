@@ -1,3 +1,5 @@
+import copy
+
 from pyrameter.domain import Domain, DiscreteDomain
 from pyrameter.models import get_model_class
 
@@ -162,9 +164,10 @@ class Scope(object):
             else:
                 # Convert non-Domain values into single-value domains
                 if not isinstance(cval, Domain):
-                    cval = DiscreteDomain(cval)
+                    cval = DiscreteDomain([cval])
 
                 # Store the Domain into its own Model to merge later
+                cval = copy.deepcopy(cval)
                 cval.path = cpath
                 m = self.__create_model()
                 m.add_domain(cval)
