@@ -127,7 +127,9 @@ class ContinuousDomain(Domain):
     def __init__(self, domain, path='', callback=None, *args, **kws):
         if isinstance(domain, str):
             domain = getattr(scipy.stats, domain)
-        super(ContinuousDomain, self).__init__(domain(*args, **kws),
+        self.domain_args = args
+        self.domain_kws = kws
+        super(ContinuousDomain, self).__init__(domain,
                                                path=path,
                                                callback=callback)
 
@@ -150,7 +152,8 @@ class ContinuousDomain(Domain):
             Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
         """
         if self._complexity is None:
-            a, b = self.domain.interval(.99)
+            a, b = self.domain.interval(.99, *self.domain_args,
+                                        **self.domain_kws)
             self._complexity = 2.0 + np.linalg.norm(b - a)
         return self._complexity
 
@@ -162,7 +165,8 @@ class ContinuousDomain(Domain):
         value : float
             A value drawn from this domain's probability distribution.
         """
-        return self.callback(self.domain.rvs())
+        return self.callback(
+            self.domain.rvs(*self.domain_args, **self.domain_kws))
 
     def to_json(self):
         """Convert this domain into a JSON-serializable format.
@@ -174,9 +178,9 @@ class ContinuousDomain(Domain):
             JSON values.
         """
         j = super(ContinuousDomain, self).to_json()
-        j.update({'distribution': self.domain.dist.name,
-                  'args': self.domain.args,
-                  'kws': self.domain.kwds})
+        j.update({'distribution': self.domain.name,
+                  'args': self.domain_args,
+                  'kws': self.domain_kwds})
         return j
 
 
