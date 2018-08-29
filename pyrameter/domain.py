@@ -180,7 +180,7 @@ class ContinuousDomain(Domain):
         j = super(ContinuousDomain, self).to_json()
         j.update({'distribution': self.domain.name,
                   'args': self.domain_args,
-                  'kws': self.domain_kwds})
+                  'kws': self.domain_kws})
         return j
 
 
