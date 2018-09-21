@@ -127,6 +127,7 @@ class ContinuousDomain(Domain):
     def __init__(self, domain, path='', callback=None, *args, **kws):
         if isinstance(domain, str):
             domain = getattr(scipy.stats, domain)
+        self.random_state = np.random.RandomState(np.random.randint(2147483647))
         self.domain_args = args
         self.domain_kws = kws
         super(ContinuousDomain, self).__init__(domain,
@@ -166,7 +167,7 @@ class ContinuousDomain(Domain):
             A value drawn from this domain's probability distribution.
         """
         return self.callback(
-            self.domain.rvs(*self.domain_args, **self.domain_kws))
+            self.domain.rvs(*self.domain_args, random_state=self.random_state, **self.domain_kws))
 
     def to_json(self):
         """Convert this domain into a JSON-serializable format.
