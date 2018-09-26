@@ -248,7 +248,8 @@ class Model(object):
         vec = np.zeros((len(self.results), len(self.results[0].values) + 1),
                        dtype=np.float32)
         for i in range(len(self.results)):
-            if self.results[i].loss is not None:
+            loss = self.results[i].loss
+            if loss is not None and loss not in [np.inf, -np.inf, np.nan]:
                 vec[i, -1] += self.results[i].loss
                 for j in range(len(self.results[i].values)):
                     vec[i, j] += self.results[i].values[j].to_numeric()
