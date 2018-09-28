@@ -64,6 +64,7 @@ class RandomSearchModel(Model):
            hyper-parameter optimization. Journal of Machine Learning Research,
            13(Feb), 281-305.
         """
+        # Create a list of randomly-generated paramters from each domain
         params = []
         for domain in self.domains:
             params.append(domain.generate())
