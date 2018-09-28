@@ -31,6 +31,8 @@ class ModelGroup(object):
                  priority_sort=True):
         self.models = {}
         self.model_ids = []
+        self.complexity_sort = complexity_sort
+        self.priority_sort = priority_sort
 
         if models is not None:
             models = [models] if not isinstance(models, list) else models
@@ -39,9 +41,6 @@ class ModelGroup(object):
 
         self.backend = backend_factory(backend) \
             if backend is not None else None
-
-        self.complexity_sort = complexity_sort
-        self.priority_sort = priority_sort
 
     def __contains__(self, id):
         return id in self.models
@@ -79,6 +78,8 @@ class ModelGroup(object):
             Raised if ``model`` is not an instance of `pyrameter.models.Model`
         """
         if isinstance(model, Model):
+            if not self.priority_sort:
+                model.priority_update_freq = -1
             self.model_ids.append(model.id)
             self.models[model.id] = model
         else:

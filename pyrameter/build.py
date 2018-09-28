@@ -3,7 +3,8 @@ from pyrameter.modelgroup import ModelGroup
 from pyrameter.scope import Scope
 
 
-def build(specification, db=None, method='random', *args, **kwargs):
+def build(specification, db=None, method='random', complexity_sort=True,
+          priority_sort=True, *args, **kwargs):
     """Construct hierarchical hyperparameter search spaces.
 
     Parameters
@@ -37,5 +38,7 @@ def build(specification, db=None, method='random', *args, **kwargs):
     # Split the models into a ModelGroup and set the db backend
     models = specification.split()
     backend = backend_factory(db, *args, **kwargs)
-    model_group = ModelGroup(models=models, backend=backend)
+    model_group = ModelGroup(models=models, backend=backend,
+                             complexity_sort=complexity_sort,
+                             priority_sort=priority_sort)
     return model_group
