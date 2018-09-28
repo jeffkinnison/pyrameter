@@ -27,9 +27,14 @@ def build(specification, db=None, method='random', *args, **kwargs):
     `pyrameter.db.backend_factory`
     `pyrameter.models.model_factory`
     """
+    # Prep the specification as a scope
     if isinstance(specification, dict):
         specification = Scope(**specification)
+    
+    # Set the generation model to the requested method
     specification.model = method
+
+    # Split the models into a ModelGroup and set the db backend
     models = specification.split()
     backend = backend_factory(db, *args, **kwargs)
     model_group = ModelGroup(models=models, backend=backend)
