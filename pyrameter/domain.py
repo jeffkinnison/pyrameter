@@ -126,8 +126,8 @@ class ContinuousDomain(Domain):
     """
     def __init__(self, domain, path='', callback=None, random_state=None,
                  *args, **kwargs):
-        if isinstance(domain, str):
-            domain = getattr(scipy.stats, domain)
+        if not isinstance(domain, scipy.stats._continuous_distns.uniform_gen):
+            domain = getattr(scipy.stats, str(domain))
         if random_state:
             self.random_state = random_state
         else:
