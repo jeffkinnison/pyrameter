@@ -124,12 +124,17 @@ class ContinuousDomain(Domain):
     kws
         Additional keyword arguments to parameterize ``domain``.
     """
-    def __init__(self, domain, path='', callback=None, *args, **kws):
+    def __init__(self, domain, path='', callback=None, random_state=None,
+                 *args, **kwargs):
         if isinstance(domain, str):
             domain = getattr(scipy.stats, domain)
-        self.random_state = np.random.RandomState(np.random.randint(2147483647))
+        if random_state:
+            self.random_state = random_state
+        else:
+            self.random_state = \
+                np.random.RandomState(np.random.randint(2147483647))
         self.domain_args = args
-        self.domain_kws = kws
+        self.domain_kwargs = kwargs
         super(ContinuousDomain, self).__init__(domain,
                                                path=path,
                                                callback=callback)
@@ -154,7 +159,7 @@ class ContinuousDomain(Domain):
         """
         if self._complexity is None:
             a, b = self.domain.interval(.99, *self.domain_args,
-                                        **self.domain_kws)
+                                        **self.domain_kwargs)
             self._complexity = 2.0 + np.linalg.norm(b - a)
         return self._complexity
 
@@ -167,7 +172,9 @@ class ContinuousDomain(Domain):
             A value drawn from this domain's probability distribution.
         """
         return self.callback(
-            self.domain.rvs(*self.domain_args, random_state=self.random_state, **self.domain_kws))
+            self.domain.rvs(*self.domain_args,
+                            random_state=self.random_state,
+                            **self.domain_kwargs))
 
     def to_json(self):
         """Convert this domain into a JSON-serializable format.
@@ -181,7 +188,7 @@ class ContinuousDomain(Domain):
         j = super(ContinuousDomain, self).to_json()
         j.update({'distribution': self.domain.name,
                   'args': self.domain_args,
-                  'kws': self.domain_kws})
+                  'kws': self.domain_kwargs})
         return j
 
 
