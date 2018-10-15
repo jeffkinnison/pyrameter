@@ -7,6 +7,7 @@ import warnings
 import weakref
 
 import numpy as np
+from six import string_types
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
@@ -399,7 +400,7 @@ class Result(object):
     def model(self, val):
         if isinstance(val, Model):
             self._model = weakref.ref(val)
-        elif isinstance(val, str) or val is None:
+        elif isinstance(val, string_types) or val is None:
             self._model = val
         else:
             raise InvalidModelError(val)
@@ -435,7 +436,8 @@ class Result(object):
             'loss': self.loss,
             'results': self.results,
             'values': [v.to_json() for v in self.values],
-            'model': self.model().id if self.model is not None else None
+            'model': self.model().id if isinstance(self.model(), Model) \
+                     else self.model
         }
 
     @staticmethod
@@ -468,12 +470,14 @@ class Value(object):
         self.value = value
         if isinstance(domain, Domain):
             self.domain = weakref.ref(domain)
+        elif isinstance(domain, string_types):
+            self.domain = domain
         else:
             raise InvalidDomainError(domain)
 
         if isinstance(result, Result):
             self.result = weakref.ref(result)
-        elif isinstance(result, str) or result is None:
+        elif isinstance(result, string_types) or result is None:
             self.result = result
         else:
             raise InvalidResultError(result)
@@ -491,6 +495,8 @@ class Value(object):
         """
         return {
             'value': self.value,
-            'domain': self.domain().id,
-            'result': self.result().id if self.result is not None else None
+            'domain': self.domain().id if isinstance(self.domain(), Domain) \
+                      else self.domain,
+            'result': self.result().id if isinstance(self.result(), Result) \
+                      else self.result
         }
