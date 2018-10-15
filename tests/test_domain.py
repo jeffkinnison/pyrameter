@@ -3,8 +3,13 @@ import pytest
 from pyrameter.domain import Domain, ContinuousDomain, DiscreteDomain, \
                              ExhaustiveDomain
 
+import warnings
+
 import numpy as np
 from scipy.stats import norm, uniform
+
+
+warnings.filterwarnings('ignore', category=UserWarning)
 
 
 class TestDomain(object):
@@ -55,11 +60,10 @@ class TestContinuousDomain(TestDomain):
         assert d.domain.kwds == {}
 
     def test_generate(self):
-        rng = np.random.RandomState(42)
         d = self.__domain_class__(self.__default_domain__)
-        d.domain.dist.random_state = 42
+        d.domain.random_state = np.random.RandomState(42)
         x = self.__default_domain__()
-        x.dist.random_state = 42
+        x.dist.random_state = np.random.RandomState(42)
 
         src = np.array([d.generate() for _ in range(1000)])
         ref = x.rvs(size=1000)
