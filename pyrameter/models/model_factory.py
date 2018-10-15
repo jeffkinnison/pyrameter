@@ -37,6 +37,8 @@ def get_model_class(model):
             model = TPEModel
         elif model in ['gp', u'gp', GPBayesModel.__name__]:
             model = GPBayesModel
+        else:
+            raise InvalidModelError(model)
     elif isinstance(model, Model):
         model = model.__class__
     else:
