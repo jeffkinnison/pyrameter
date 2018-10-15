@@ -4,7 +4,7 @@ from pyrameter.domain import Domain, ContinuousDomain, DiscreteDomain, \
                              ExhaustiveDomain
 
 import numpy as np
-from scipy.stats import uniform
+from scipy.stats import norm, uniform
 
 
 class TestDomain(object):
@@ -45,7 +45,12 @@ class TestContinuousDomain(TestDomain):
 
     def test_init(self):
         d = self.__domain_class__(self.__default_domain__)
-        assert d.domain.dist.name == 'uniform'
+        assert 'uniform' in d.domain.dist.name
+        assert d.domain.args == tuple()
+        assert d.domain.kwds == {}
+
+        d = self.__domain_class__(norm)
+        assert 'norm' in d.domain.dist.name
         assert d.domain.args == tuple()
         assert d.domain.kwds == {}
 
