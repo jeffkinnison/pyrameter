@@ -30,17 +30,15 @@ def get_model_class(model):
     from pyrameter.models.tpe import TPEModel
     from pyrameter.models.gp import GPBayesModel
 
-    if isinstance(model, Model):
-        return model.__class__
-    elif isinstance(model, str):
-        if model in ['random', RandomSearchModel.__name__]:
+    if not isinstance(model, Model):
+        if model in ['random', u'random', RandomSearchModel.__name__]:
             model = RandomSearchModel
-        elif model in ['tpe', TPEModel.__name__]:
+        elif model in ['tpe', u'tpe', TPEModel.__name__]:
             model = TPEModel
-        elif model in ['gp', GPBayesModel.__name__]:
+        elif model in ['gp', u'gp', GPBayesModel.__name__]:
             model = GPBayesModel
-        else:
-            raise InvalidModelError(model)
+    elif isinstance(model, Model):
+        model = model.__class__
     else:
         raise InvalidModelError(model)
 
