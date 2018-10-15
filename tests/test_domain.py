@@ -50,18 +50,19 @@ class TestContinuousDomain(TestDomain):
 
     def test_init(self):
         d = self.__domain_class__(self.__default_domain__)
-        assert 'uniform' in d.domain.dist.name
-        assert d.domain.args == tuple()
-        assert d.domain.kwds == {}
+        assert 'uniform' in d.domain.name
+        assert d.domain_args == tuple()
+        assert d.domain_kwargs == {}
 
         d = self.__domain_class__(norm)
-        assert 'norm' in d.domain.dist.name
-        assert d.domain.args == tuple()
-        assert d.domain.kwds == {}
+        assert 'norm' in d.domain.name
+        assert d.domain_args == tuple()
+        assert d.domain_kwargs == {}
 
     def test_generate(self):
-        d = self.__domain_class__(self.__default_domain__)
-        d.domain.random_state = np.random.RandomState(42)
+        d = self.__domain_class__(self.__default_domain__,
+                                  random_state=np.random.RandomState(42))
+        # d.random_state = np.random.RandomState(42)
         x = self.__default_domain__()
         x.dist.random_state = np.random.RandomState(42)
 
