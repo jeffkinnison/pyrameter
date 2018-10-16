@@ -436,7 +436,7 @@ class Result(object):
             'loss': self.loss,
             'results': self.results,
             'values': [v.to_json() for v in self.values],
-            'model': self.model().id if isinstance(self.model(), Model) \
+            'model': self.model().id if isinstance(self.model, weakref.ref) \
                      else self.model
         }
 
@@ -495,8 +495,8 @@ class Value(object):
         """
         return {
             'value': self.value,
-            'domain': self.domain().id if isinstance(self.domain(), Domain) \
+            'domain': self.domain().id if isinstance(self.domain, weakref.ref) \
                       else self.domain,
-            'result': self.result().id if isinstance(self.result(), Result) \
+            'result': self.result().id if isinstance(self.result, weakref.ref) \
                       else self.result
         }

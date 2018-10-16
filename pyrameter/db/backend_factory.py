@@ -1,5 +1,7 @@
 import os
 
+from six import string_types
+
 from pyrameter.db.base import BaseStorage
 
 
@@ -45,7 +47,7 @@ def backend_factory(path, *args, **kwargs):
     if isinstance(path, BaseStorage):
         return path
     try:
-        if isinstance(path, str) and path.find('mongodb://') == 0:
+        if isinstance(path, string_types) and path.find('mongodb://') == 0:
             from pyrameter.db.mongo import MongoStorage
             return MongoStorage(path, *args, **kwargs)
         else:
