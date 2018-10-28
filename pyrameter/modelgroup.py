@@ -144,7 +144,7 @@ class ModelGroup(object):
             for i in range(len(self.model_ids)):
                 self.models[i].rank *= i
 
-        self.model_ids.sort(key=lambda m: self.models[m].rank, reverse=True)
+        self.model_ids.sort(key=lambda m: self.models[m].rank)
 
     def generate(self, model_id=None):
         """Generate a set of hyperparameter values from a model.
