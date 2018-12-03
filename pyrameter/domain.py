@@ -210,12 +210,12 @@ class DiscreteDomain(Domain):
     If a single, non-list object is provided to a DiscreteDomain, it will be
     wrapped in a list to represent a domain with a single value.
     """
-    def __init__(self, domain, path=''):
-        try:
-            self.rng = randint(0, len(domain))
-        except AttributeError:
-            domain = [domain]
-            self.rng = randint(0, len(domain))
+    def __init__(self, domain, path='', random_state=None):
+        if random_state:
+            self.random_state = random_state
+        else:
+            self.random_state = \
+                np.random.RandomState(np.random.randint(2147483647))
         super(DiscreteDomain, self).__init__(domain, path=path)
 
     @property
@@ -256,7 +256,7 @@ class DiscreteDomain(Domain):
         index : int, optional
             The index of ``value`` in this domain.
         """
-        idx = self.rng.rvs()
+        idx = randint.rvs(0, len(self.domain),  random_state=self.random_state)
         value = self.domain[idx]
         return value if not index else (value, idx)
 
