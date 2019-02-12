@@ -28,7 +28,7 @@ class ModelGroup(object):
         models during hyperparameter generation.
     """
     def __init__(self, models=None, backend=None, complexity_sort=True,
-                 priority_sort=True):
+                 priority_sort=True, recover=False):
         self.models = {}
         self.model_ids = []
         self.complexity_sort = complexity_sort
@@ -42,6 +42,9 @@ class ModelGroup(object):
         self.backend = backend_factory(backend) \
             if backend is not None else None
 
+        if recover:
+            self.load()
+
     def __contains__(self, id):
         return id in self.models
 
@@ -52,7 +55,7 @@ class ModelGroup(object):
         return all(
             any(
                 [[i == j for _, j in other.models.items()]
-                    for _, i in self.models.items()]
+                 for _, i in self.models.items()]
             )
         )
 
@@ -60,9 +63,21 @@ class ModelGroup(object):
         return len(self.model_ids)
 
     def __str__(self):
-        s = '\n'.join([str(self.models[m]) for m in self.model_ids])
-        s = '\n'.join(['[', s, ']'])
-        return s
+        string_rep = '\n'.join([str(self.models[m]) for m in self.model_ids])
+        string_rep = '\n'.join(['[', string_rep, ']'])
+        return string_rep
+
+    def __iter__(self):
+        self._idx = 0
+        return self
+
+    def __next__(self):
+        if self._idx < len(self.model_ids):
+            m = self.models[self.model_ids[i]]
+            self._idx += 1
+            return m
+        else:
+            raise StopIteration
 
     def add_model(self, model):
         """Add a model to this group.
@@ -174,12 +189,12 @@ class ModelGroup(object):
         """
         if model_id is None:
             if self.complexity_sort or self.priority_sort:
-                p = np.array([scipy.stats.planck.pmf(i, 0.5)
-                             for i in range(len(self.models))])
+                probs = np.array([scipy.stats.planck.pmf(i, 0.5)
+                                  for i in range(len(self.models))])
             else:
-                p = np.ones(len(self.models))
-            p = p / p.sum()
-            idx = np.random.choice(np.arange(len(self.models)), p=p)
+                probs = np.ones(len(self.models))
+            probs = probs / probs.sum()
+            idx = np.random.choice(np.arange(len(self.models)), p=probs)
             params = (self.model_ids[idx],) + \
                 self.models[self.model_ids[idx]]()
         else:
@@ -227,7 +242,6 @@ class ModelGroup(object):
         optimal : dict
             A dictionary of lists of results indexed by model id.
         """
-        optimal = []
         results = []
 
         # Concatenate the results from each model into a single list
@@ -291,12 +305,21 @@ class ModelGroup(object):
 
     @property
     def result_count(self):
+        """The number of results recorded by this modelgroup.
+
+        Returns
+        -------
+        count : int
+            The total number of results across all models.
+        """
         return sum([len(m.results) for m in self.models.values()])
 
     def save(self):
+        """Save the data in this modelgroup to the storage backend."""
         self.backend.save([self.models[m] for m in self.model_ids])
 
     def load(self):
+        """Load data from the dtaabase backend into this modelgroup."""
         models = self.backend.load()
         for model in models:
             self.add_model(model)
