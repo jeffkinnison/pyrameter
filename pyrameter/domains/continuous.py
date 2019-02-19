@@ -1,9 +1,10 @@
-"""A continuous domain defined by a probability distributionself.
+"""A continuous domain defined by a probability distribution.
 
 Classes
 -------
 ContinuousDomain
     Hyperparameter defined over a continuous, real-valued domain.
+
 """
 
 import numpy as np
@@ -49,10 +50,14 @@ class ContinuousDomain(Domain):
 
     @property
     def complexity(self):
-        """Approximate the size of this domain.
+        """Approximate size of this domain.
 
         The size of a continuous domain is approximated by computing the
         magnitude of the interval containing 99%% of the distribution.
+
+        Returns
+        -------
+        complexity : float
 
         Notes
         -----
@@ -65,14 +70,14 @@ class ContinuousDomain(Domain):
             (2017). SHADHO: Massively Scalable Hardware-Aware Distributed
             Hyperparameter Optimization. arXiv preprint arXiv:1707.01428.
         """
-        if self._complexity is None:
-            a, b = self.domain.interval(.99, *self.domain_args,
-                                        **self.domain_kwargs)
-            self._complexity = 2.0 + np.linalg.norm(b - a)
-        return self._complexity
+        if self.__complexity is None:
+            lo, hi = self.domain.interval(.99, *self.domain_args,
+                                          **self.domain_kwargs)
+            self.__complexity = 2.0 + np.linalg.norm(hi - lo)
+        return self.__complexity
 
     def generate(self, index=False):
-        """Generate a value from this domain.
+        """Draw a value from this domain.
 
         Returns
         -------
@@ -94,7 +99,8 @@ class ContinuousDomain(Domain):
             JSON values.
         """
         j = super(ContinuousDomain, self).to_json()
-        j.update({'distribution': self.domain.name,
-                  'args': self.domain_args,
-                  'kws': self.domain_kwargs})
+        j['domain'] = {
+            'distribution': self.domain.name,
+            'args': self.domain_args,
+            'kws': self.domain_kwargs}
         return j
