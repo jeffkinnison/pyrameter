@@ -9,7 +9,8 @@ setup(
     author='Jeff Kinnison',
     author_email='jkinniso@nd.edu',
     packages=['pyrameter',
-              'pyrameter.models',
+              'pyrameter.domains',
+              'pyrameter.methods',
               'pyrameter.db'],
     classifiers=[
         'Development Status :: 3 - Alpha',
