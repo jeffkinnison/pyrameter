@@ -76,7 +76,7 @@ class ContinuousDomain(Domain):
             self.__complexity = 2.0 + np.linalg.norm(hi - lo)
         return self.__complexity
 
-    def generate(self, index=False):
+    def generate(self):
         """Draw a value from this domain.
 
         Returns

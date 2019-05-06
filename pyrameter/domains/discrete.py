@@ -61,7 +61,7 @@ class DiscreteDomain(Domain):
             self.__complexity = 2.0 - (1.0 / len(self.domain))
         return self.__complexity
 
-    def generate(self, index=False):
+    def generate(self):
         """Generate a value from this domain.
 
         Parameters
@@ -79,7 +79,7 @@ class DiscreteDomain(Domain):
         """
         idx = randint.rvs(0, len(self.domain), random_state=self.random_state)
         value = self.domain[idx]
-        return value if not index else (value, idx)
+        return value
 
     def map_to_domain(self, idx, bound=False):
         """Map a index to its value in the domain.
