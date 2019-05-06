@@ -6,6 +6,10 @@ SearchSpace
     A hyperparameter serch space composed of multiple domains.
 
 """
+import warnings
+
+from sklearn.gaussian_process import GaussianProcessRegressor
+from sklearn.gaussian_process.kernel import RBF
 
 from pyrameter.db.entities.entity import Entity
 from pyrameter.db.entities.domain import Domain
@@ -13,7 +17,7 @@ from pyrameter.db.entities.result import Result
 
 
 class SearchSpace(Entity):
-    """A hyperparameter serch space composed of multiple domains.
+    """A hyperparameter search space composed of multiple domains.
 
     Attributes
     ----------
@@ -39,14 +43,26 @@ class SearchSpace(Entity):
 
     def __init__(self, method=None, domains=None, results=None,
                  complexity=None, uncertainty=None,
-                 uncertainty_update_frequency=None)
+                 uncertainty_update_frequency=None):
         super(SearchSpace, self).__init__()
         self.method = method
         self.domains = domains if domains is not None else []
         self.results = results if results is not None else []
-        self.complexity = complexity
-        self.uncertainty = uncertainty
-        self uncertainty_update_frequency = uncertainty_update_frequency
+        self.__complexity = complexity
+        self.__uncertainty = uncertainty
+        self.uncertainty_update_frequency = uncertainty_update_frequency
+
+    @property
+    def completed_results(self):
+        return [r for r in self.results if r.loss is not None]
+
+    @property
+    def complexity(self):
+        if self.__complexity is None:
+            self.__complexity = 1.0
+            for d in self.domains:
+                self.__complexity *= d.complexity
+        return self.__complexity
 
     def to_array(self):
         """Convert the results list into an array for analysis.
@@ -58,13 +74,14 @@ class SearchSpace(Entity):
             this search space and v is the number of hyperparameter values. The
             last entry in each row is the performance (e.g. loss).
         """
-        if self.results:
-            vec = np.zeros((len(self.results), len(self.domains) + 1),
+        results = self.completed_results
+        if results:
+            vec = np.zeros((len(results), len(self.domains) + 1),
                            dtype=np.float32)
             for i, res in enumerate(self.results):
                 vec[i][-1] += res.loss
                 for j, val in enumerate(res.values):
-                    vec[i, j] += val.to_numeric()
+                    vec[i, j] += self.domains[j].map_to_index(val)
         else:
             vec = None
         return vec
@@ -86,3 +103,27 @@ class SearchSpace(Entity):
             'uncertainty': self.uncertainty,
             'uncertainty_update_frequency': self.uncertainty_update_frequency
         }
+
+    @property
+    def uncertainty(self):
+        vec = self.to_array()
+        uf = self.uncertainty_update_frequency
+        if uf > 0 and vec.shape[0] % uf:
+            split = int(np.ceil(vec.shape[0] *
+                        (0.8 if vec.shape[0] < 10 else 1.0)))
+            scales = np.zeros((50,), dtype=np.float32)
+
+            for i in range(scales.shape[0]):
+                np.random.shuffle(vec)
+                features = np.copy(vec[:split, :-1])
+                losses = np.reshape(np.copy(vec[:split, -1]), (-1, 1))
+                est = np.random.uniform(0.1, 2.0)
+                gp = GaussianProcessRegressor(kernel=RBF(length_scale=est),
+                                              alpha=1e-5)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore")
+                    gp.fit(features, losses)
+                scales[i] += (1.0 / gp.kernel.theta[0])
+
+            self.__uncertainty = np.linalg.norm(scales.max() - scales.min())
+        return self.__uncertainty

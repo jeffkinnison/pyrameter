@@ -33,7 +33,7 @@ class Result(Entity):
         except TypeError:
             self.values = [values] if values is not None else []
 
-        self.additional_metrics =
+        self.additional_metrics = \
             additional_metrics if additional_metrics is not None else {}
 
     def to_json(self):

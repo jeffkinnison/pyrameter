@@ -28,6 +28,12 @@ class Domain(Entity):
         self.domain = domain
         self.path = path
         self.__complexity = None
+        self.values = []
+
+    def __call__(self, index=False):
+        val = self.generate()
+        self.values.append(val)
+        return val if not index else (val, self.map_to_index(val))
 
     def __iter__(self):
         return self
@@ -40,6 +46,9 @@ class Domain(Entity):
 
     def __eq__(self, other):
         return self.to_json() == other.to_json()
+
+    def __lt__(self, other):
+        return self.path < other.path
 
     def __str__(self):
         return str(self.to_json())
