@@ -6,10 +6,12 @@ ExhaustiveDomain
     Discrete/categorical domain for exhaustive grid search.
 """
 
-from pyrameter.domains.base import Domain
+from collections import Sequence
+
+from pyrameter.domains.discrete import DiscreteDomain
 
 
-class ExhaustiveDomain(Domain):
+class ExhaustiveDomain(DiscreteDomain):
     """Discrete/categorical domain for exhaustive grid search.
 
     Parameters
@@ -23,9 +25,28 @@ class ExhaustiveDomain(Domain):
     -----
     Instead of using internal tracking to determine which part of the grid to
     search, this domain is a placeholder used to spawn multiple search space
-    graphs.
+    graphs. As of now, it is not directly used to generate values.
     """
 
     def __init__(self, name, domain):
-        super(ExhaustiveDomain, self).__init__(name)
-        self.domain = domain
+        super(ExhaustiveDomain, self).__init__(name, domain)
+
+    @property
+    def complexity(self):
+        if self._complexity is None:
+            try:
+                self._complexity = 2 - (1 / len(self.domain))
+            except ZeroDivisionError:
+                self._complexity = 1
+        return self._complexity
+
+    def generate(self):
+        raise NotImplementedError
+
+    def to_json(self):
+        jsonified = super(ExhaustiveDomain, self).to_json()
+        del jsonified['random_state']
+        jsonified.update({
+            'exhaustive': True
+        })
+        return jsonified

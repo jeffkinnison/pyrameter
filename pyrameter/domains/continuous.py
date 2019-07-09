@@ -45,6 +45,11 @@ class ContinuousDomain(Domain):
         domain_kwargs.pop('callback', None)
         domain_kwargs.pop('seed', None)
 
+        if seed is not None:
+            if isinstance(seed, int):
+                seed = np.random.RandomState(seed)
+            domain_kwargs['random_state'] = seed
+
         self.domain_args = domain_args
         self.domain_kwargs = domain_kwargs
 
@@ -60,3 +65,45 @@ class ContinuousDomain(Domain):
         """Generate a hyperparameter value from this domain."""
         return self.callback(
             self.domain.rvs(*self.domain_args, **self.domain_kwargs))
+
+    def map_to_domain(self, value, bound=False):
+        if bound:
+            try:
+                pdf_kwargs = {k: v for k, v in self.domain_kwargs.items()
+                              if k != 'random_state'}
+                prob = self.domain.pdf(
+                    value, *self.domain_args, **pdf_kwargs)
+                if prob == 0:
+                    value = None
+            except ValueError:
+                value = None
+        return value
+
+    def to_index(self, value, bound=False):
+        if bound:
+            try:
+                pdf_kwargs = {k: v for k, v in self.domain_kwargs.items()
+                              if k != 'random_state'}
+                prob = self.domain.pdf(
+                    value, *self.domain_args, **pdf_kwargs)
+                if prob == 0:
+                    value = None
+            except ValueError:
+                value = None
+        return value
+
+    def to_json(self):
+        jsonified = super(ContinuousDomain, self).to_json()
+        jsonified.update({
+            'domain': self.domain.name,
+            'domain_args': self.domain_args,
+            'domain_kwargs': {}
+        })
+
+        for key, val in self.domain_kwargs.items():
+            if key == 'random_state' and isinstance(val, np.random.RandomState):
+                val = list(val.get_state())
+                val[1] = list(val[1])
+            jsonified['domain_kwargs'][key] = val
+
+        return jsonified

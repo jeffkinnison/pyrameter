@@ -8,6 +8,7 @@ DiscreteDomain
 
 from collections import Sequence
 
+import numpy as np
 import scipy.stats
 
 from pyrameter.domains.base import Domain
@@ -33,31 +34,44 @@ class DiscreteDomain(Domain):
     def __init__(self, name, domain, callback=None, seed=None):
         super(DiscreteDomain, self).__init__(name)
 
-        if not isinstance(domain, Sequence) or isinstance(domain, str):
+        if not isinstance(domain, Sequence) or isinstance(domain, (str, tuple)):
             domain = [domain]
+        elif isinstance(domain, range):
+            domain = list(domain)
 
         self.domain = list(domain)
 
+        if isinstance(seed, int):
+            seed = np.random.RandomState(seed)
+
         self.callback = callback if callback is not None else lambda x: x
-        self.seed = seed
+        self.random_state = seed
 
     @property
     def complexity(self):
         if self._complexity is None:
-            self._complexity = 2 - (1 / len(self.domain))
+            try:
+                self._complexity = 2 - (1 / len(self.domain))
+            except ZeroDivisionError:
+                self._complexity = 1
         return self._complexity
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
-        index = self.callback(
-            scipy.stats.randint.rvs(0, len(self.domain),
-                                    random_state=self.seed))
-        return self.domain[index]
+        if len(self.domain) > 0:
+            index = self.callback(
+                scipy.stats.randint.rvs(0, len(self.domain),
+                                        random_state=self.random_state))
+            return self.domain[index]
+        else:
+            return None
 
-    def map_to_value(self, idx, bound=True):
+    def map_to_domain(self, idx, bound=True):
         if bound:
             idx = int(round(idx))
             idx = min(len(self.domain) - 1, max(0, idx))
+        elif not bound and idx < 0:
+            idx = len(self.domain)
         try:
             val = self.domain[idx]
         except IndexError:
@@ -71,3 +85,17 @@ class DiscreteDomain(Domain):
         except ValueError:
             idx = None
         return idx
+
+    def to_json(self):
+        jsonified = super(DiscreteDomain, self).to_json()
+        jsonified.update({
+            'domain': list(self.domain)
+        })
+        if isinstance(self.random_state, np.random.RandomState):
+            rs = self.random_state.get_state()
+            jsonified.update({
+                'random_state': [rs[0], list(rs[1]), rs[2], rs[3], rs[4]]
+            })
+        else:
+            jsonified.update({'random_state': self.random_state})
+        return jsonified

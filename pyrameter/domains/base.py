@@ -19,7 +19,7 @@ class MetaDomain(type):
         return x
 
 
-class Domain(object):
+class Domain(object, metaclass=MetaDomain):
     """Base class for hyperparameter domains.
 
     Parameters
@@ -82,4 +82,5 @@ class Domain(object):
         return value
 
     def to_json(self):
+        """Convert the domain to a JSON-compatible format."""
         return {'name': self.name}

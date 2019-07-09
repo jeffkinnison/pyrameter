@@ -27,3 +27,9 @@ class ConstantDomain(Domain):
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return self.domain
+
+    def to_json(self):
+        """Convert the domain to a JSON-compatible format."""
+        jsonified = super(ConstantDomain, self).to_json()
+        jsonified.update({'domain': self.domain})
+        return jsonified
