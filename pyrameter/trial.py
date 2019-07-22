@@ -8,10 +8,11 @@ Trial
 
 import enum
 import itertools
+import weakref
 
 
 @enum.unique
-class TrialState(enum.Enum):
+class TrialStatus(enum.Enum):
     """Representation of discrete trial states.
 
     Attributes
@@ -36,6 +37,7 @@ class TrialMeta(type):
     def __new__(cls, name, bases, dct):
         x = super().__new__(cls, name, bases, dct)
         x._counter = itertools.count(0)
+        return x
 
 
 class Trial(object, metaclass=TrialMeta):
@@ -43,8 +45,10 @@ class Trial(object, metaclass=TrialMeta):
 
     Parameters
     ----------
-    parameters : dict
+    hyperparameters : list
         Hyperparameter values to be used in this trial.
+    domains : list of pyrameter.Domain
+        The domains that generated ``hyperparameters`` in order.
     results : dict
         Results of evaluating a model trained with ``parameters``, e.g. loss,
         accuracy, running time, etc.
@@ -56,48 +60,89 @@ class Trial(object, metaclass=TrialMeta):
     Attributes
     ----------
     id : int or bson.objectid.ObjectId
+        Unique id of this trial.
+    status : pyrameter.trials.TrialStatus
 
     """
 
-    def __init__(self, searchspace, parameters=None, results=None,
+    def __init__(self, searchspace, hyperparameters=None, results=None,
                  objective=None, errmsg=None):
         self.id = next(self.__class__._counter)
-        self.status = None
         self.dirty = False
 
-        self.searchspace = searchspace
-        self.parameters = parameters
+        self.searchspace = weakref.ref(searchspace) \
+                           if searchspace is not None else None
+        self.hyperparameters = hyperparameters
         self.results = results
         self.objective = objective
         self.errmsg = errmsg
+        self._dirty = True
 
+
+        self.status = None
         self.set_status()
 
+    def __hash__(self):
+        return hash(str(self.id))
+
     def __setattr__(self, key, val):
-        start_val = getattr(self, key)
-        super().__setattr__(key, val)
-        if start_val != val:
-            self.dirty = True
+        if key in self.__dict__:
+            start_val = self.__dict__[key]
+        else:
+            start_val = None
+        self.__dict__[key] = val
+        if 'status' in self.__dict__ and start_val != val:
             self.set_status()
+
+    @property
+    def parameter_dict(self):
+        """Convert the trial hyperparameters into a nested dictionary.
+
+        Hyperparameters are in general defined as hierarchies. Ensuring that
+        generated hyperparameter values are available in the same hierarchy as
+        they were defined provides a consistent interface for users.
+
+        Returns
+        -------
+        hyperparameters : dict
+            The (potentially nested) dictionary of hyperparameters values used
+            in this trial, structured to match the original hyperparameter
+            specification.
+        """
+        params = {}
+        for i, domain in enumerate(self.searchspace().domains):
+            curr = params
+            path = domain.name.strip('/').split('/')
+            print(path)
+            for p in path[:-1]:
+                if p not in curr:
+                    curr[p] = {}
+                curr = curr[p]
+            curr[path[-1]] = self.hyperparameters[i]
+        return params
 
     def set_status(self):
         """Introspect to set the state of this trial."""
-        if self.errmsg is not None:
-            self.status = TrialState.ERROR
-        elif self.results is not None and self.parameters is not None:
-            self.status = TrialState.DONE
-        elif self.parameters is not None:
-            self.status = TrialState.READY
-        else:
-            self.status = TrialState.INIT
+        if 'status' in self.__dict__:
+            oldstatus = self.status
+            if self.errmsg is not None:
+                self.status = TrialStatus.ERROR
+            elif self.results is not None and self.hyperparameters is not None:
+                self.status = TrialStatus.DONE
+            elif self.hyperparameters is not None:
+                self.status = TrialStatus.READY
+            else:
+                self.status = TrialStatus.INIT
+            self.dirty = oldstatus == self.status
 
     def to_json(self):
         """Convert this trial to a JSON-compatible representation."""
         return dict(
-            searchspace=self.searchspace.id if hasattr(self.searchspace, 'id')
+            searchspace=self.searchspace().id
+                        if hasattr(self.searchspace(), 'id')
                         else self.searchspace,
             status=self.status.value,
-            hyperparameters=self.parameters,
+            hyperparameters=self.hyperparameters,
             results=self.results,
             objective=self.objective
         )
