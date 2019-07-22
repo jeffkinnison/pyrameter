@@ -5,6 +5,7 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 
 from pyrameter.methods.random import random_search
+from pyrameter.trials import Trial
 
 
 def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
@@ -75,4 +76,7 @@ def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
             # Add the value with the best expected improvement
             domain = space.nodes[j]
             params.append(domain.map_to_domain(best[0]), bound=True)
+
+            params = Trial(space, hyperparameters=params)
+            space.results.append(params)
     return params
