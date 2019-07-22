@@ -20,4 +20,4 @@ def random_search(space):
     values : list
         Values generated from ``space``.
     """
-    return [domain.generate() for domain in space]
+    return space()
