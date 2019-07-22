@@ -6,7 +6,7 @@ JointDomain
     Joint hierarchical hyperparameter domain.
 """
 
-from pyrameter.domains.domain import Domain
+from pyrameter.domains.base import Domain
 
 
 class JointDomain(Domain):
@@ -26,26 +26,26 @@ class JointDomain(Domain):
 
     def __init__(self, name, **domains):
         super(JointDomain, self).__init__(name)
-        self.domain = domain
+        self.domain = domains
 
     def __getattr__(self, key):
         try:
             return self.domains[key]
-        except KeyError
+        except KeyError:
             return super(JointDomain, self).__getattr__(key)
 
     @property
     def complexity(self):
-        if self.__complexity is None:
-            self.__complexity = 0
+        if self._complexity is None:
+            self._complexity = 0
             for key, val in self.domains.items():
-                self.__complexity += val.complexity
-        return self.__complexity
+                self._complexity += val.complexity
+        return self._complexity
 
     def generate(self):
         return {key: val.generate() for key, val in self.domains.items()}
 
-    def map_to_domain():
+    def map_to_domain(self):
         pass
 
     def to_index(self):
