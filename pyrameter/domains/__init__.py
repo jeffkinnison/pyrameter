@@ -24,8 +24,11 @@ from .constant import ConstantDomain
 from .continuous import ContinuousDomain
 from .linked import DependentDomain
 from .discrete import DiscreteDomain
-from .searchspace import SearchSpace
+from .exhaustive import ExhaustiveDomain
+from .joint import JointDomain
+# from .searchspace import SearchSpace
 from .sequence import SequenceDomain
 
 __all__ = ["Domain", "ConditionalDomain", "ConstantDomain", "ContinuousDomain",
-           "DependentDomain", "DiscreteDomain", "SequenceDomain"]
+           "DependentDomain", "DiscreteDomain", "ExhaustiveDomain",
+           "JointDomain", "SequenceDomain"]
