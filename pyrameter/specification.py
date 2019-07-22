@@ -50,23 +50,24 @@ class Specification(object):
         return hash(self.name)
 
     def __getattr__(self, key):
-        if key in self.children:
+        if 'children' in self.__dict__ and key in self.__dict__['children']:
             return self.children[key]
         return self.__dict__[key]
 
     def __setattr__(self, key, val):
-        if key not in ['exclusive', 'optional']:
-            name = os.path.join(self.name, key)
+        if key not in ['name', 'exclusive', 'optional', 'children']:
             if isinstance(val, dict):
-                self.children[key] = SearchSpace(name, **val)
+                self.children[key] = Specification(name=key, **val)
+            elif isinstance(val, JointDomain):
+                self.children[key] = Specification(name=key, **val.domain)
             elif isinstance(val, list):
-                self.children[key] = DiscreteDomain(name, val)
+                self.children[key] = DiscreteDomain(key, val)
             elif isinstance(val, tuple):
-                self.children[key] = SequenceDomain(name, val)
+                self.children[key] = SequenceDomain(key, val)
             elif isinstance(val, Domain):
                 self.children[key] = val
             else:
-                self.children[key] = ConstantDomain(name, val)
+                self.children[key] = ConstantDomain(key, val)
         else:
             self.__dict__[key] = val
 
@@ -76,7 +77,7 @@ class Specification(object):
     def __setitem__(self, key, value):
         setattr(self, key, value)
 
-    def build_graph(self, root=None):
+    def split(self, root=None):
         """Convert this search space into a directed graph.
 
         Parameters
@@ -84,52 +85,49 @@ class Specification(object):
         root : string
             The root name of this search space for generating paths.
         """
-        G = nx.OrderedMultiDiGraph()
-
         if root is None:
             root = ''
 
         root = os.path.join(root, self.name)
-        G.add_node(root)
 
-        nodesets = [[]] if not self.exclusive else []
+        # Gather all sets of domains corresponding to differnt machine learning
+        # algorithms to be hyperparameterized.
+        domainsets = [[]] if not self.exclusive else []
 
+        # Iterate over all domains in this sepcification
         for key, val in self.children.items():
             val.name = os.path.join(root, val.name)
-            if isinstance(val, SearchSpace):
-                sub, subnodesets = val.build_graph()
-                G.update(edges=sub.edges(), nodes=sub.nodes)
-                G.add_edge(root, val.name)
+
+            # Recurse into nested specifications and merge the results
+            if isinstance(val, Specification):
+                subdomainsets = val.split()
                 if self.exclusive:
-                    nodesets.extend(subnodesets)
+                    domainsets.extend(subdomainsets)
                 else:
-                    new_nodesets = []
-                    for ns1 in nodesets:
-                        for ns2 in subnodesets:
-                            new_nodesets.append(ns1 + ns2)
-                    nodesets = new_nodesets
+                    new_domainsets = []
+                    for ds1 in domainsets:
+                        for ds2 in subdomainsets:
+                            new_domainsets.append(ds1 + ds2)
+                    domainsets = new_domainsets
             elif isinstance(val, ExhaustiveDomain):
-                new_nodesets = []
+                new_domainsets = []
                 for i, entry in enumerate(val.domain):
                     newval = ConstantDomain(val.name, entry)
-
                     if self.exclusive:
-                        nodesets.append([newval])
+                        domainsets.append([newval])
                     else:
-                        for ns1 in nodesets:
-                            new_nodesets.append(ns1 + [newval])
-
-                    G.add_node(root, newval)
+                        for ds1 in domainsets:
+                            new_domainsets.append(ds1 + [newval])
+                if len(new_domainsets) > 0:
+                    domainsets = new_domainsets
             else:
-                root.add_node(val)
-                root.add_edge(root, val)
                 if self.exclusive:
-                    nodesets.append([val])
+                    domainsets.append([val])
                 else:
-                    for ns1 in nodesets:
-                        ns1.append(val)
+                    for ds1 in domainsets:
+                        ds1.append(val)
 
         if self.optional:
-            nodesets.append([])
+            domainsets.append([])
 
-        return G, nodesets
+        return domainsets
