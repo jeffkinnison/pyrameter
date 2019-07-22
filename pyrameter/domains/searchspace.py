@@ -8,6 +8,7 @@ SearchSpace
 
 import collections
 import functools
+import itertools
 from multiprocessing.pool import ThreadPool
 import operator
 import warnings
@@ -20,7 +21,17 @@ from pyrameter.domains.base import Domain
 from pyrameter.trial import Trial
 
 
-class SearchSpace(object):
+class SearchSpaceMeta(type):
+    """Metaclass for handling behind-the-scenes tasks for SearchSpace objects.
+    """
+
+    def __new__(cls, name, bases, dct):
+        x = super().__new__(cls, name, bases, dct)
+        x._counter = itertools.count(0)
+        return x
+
+
+class SearchSpace(object, metaclass=SearchSpaceMeta):
     """Hierarchical hyperparameter domain organization and value generation.
 
     A search space represents the set of hyperparameters corresponding to a
@@ -28,6 +39,7 @@ class SearchSpace(object):
     """
 
     def __init__(self, domains, exp_key=''):
+        self.id = next(self.__class__._counter)
         self.exp_key = exp_key
         self.results = []
 
@@ -74,10 +86,6 @@ class SearchSpace(object):
                 map(lambda d: d.complexity, self.domains),
                 1.0)
         return self.__complexity
-
-    def register_result(self, trial, results):
-        self.objective.append(result[objective_key])
-        self.results.append(result)
 
     def to_array(self):
         """Convert the trials in this search space into a contiguous array.
