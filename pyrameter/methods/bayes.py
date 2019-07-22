@@ -12,6 +12,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernel import Matern
 
 from pyrameter.methods.random import random_search
+from pyrameter.trial import Trial
 
 
 def bayes_opt(space, n_samples=10, warm_up=10, **gp_kws):
@@ -58,5 +59,7 @@ def bayes_opt(space, n_samples=10, warm_up=10, **gp_kws):
 
         # Return the candidate with the best expected improvement
         params = potential_params[np.argmax(ei, axis=1)]
+        params = Trial(space, hyperparameters=params)
+        space.results.append(params)
 
     return params
