@@ -9,6 +9,7 @@ setup(
     author='Jeff Kinnison',
     author_email='jkinniso@nd.edu',
     packages=['pyrameter',
+              'pyrameter.backend',
               'pyrameter.domains',
               'pyrameter.methods',],
               # 'pyrameter.models',
@@ -31,12 +32,11 @@ setup(
     ],
     keywords='machine_learning hyperparameters',
     install_requires=[
-        'scipy>=0.18.1',
+        'dill',
         'numpy>=1.12.0',
-        'scikit-learn>=0.18.1',
-        'sqlalchemy>=1.1.11',
-        'networkx',
         'pymongo',
+        'scipy>=0.18.1',
+        'scikit-learn>=0.18.1',
         'six',
     ],
 )
