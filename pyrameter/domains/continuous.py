@@ -6,6 +6,7 @@ ContinuousDomain
     A continuous hyperparameter domain.
 """
 
+import dill
 import numpy as np
 import scipy.stats
 
@@ -61,6 +62,22 @@ class ContinuousDomain(Domain):
             self._complexity = 2 + np.abs(b - a)
         return self._complexity
 
+    @classmethod
+    def from_json(cls, obj):
+        if 'random_state' in obj['domain_kwargs']:
+            rng = obj['domain_kwargs']['random_state']
+            random_state = np.random.RandomState()
+            random_state.set_state((rng[0], np.array(rng[1], dtype=np.uint32),
+                                    rng[2], rng[3], rng[4]))
+            del obj['domain_kwargs']['random_state']
+        else:
+            random_state = obj['domain_kwargs']['random_state']
+            del obj['domain_kwargs']['random_state']
+        domain = cls(obj['name'], obj['domain'], *obj['domain_args'],
+                     dill.loads(obj['callback']), seed=random_state,
+                     **obj['domain_kwargs'])
+        return domain
+
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return self.callback(
@@ -94,10 +111,16 @@ class ContinuousDomain(Domain):
 
     def to_json(self):
         jsonified = super(ContinuousDomain, self).to_json()
+
+        rng = self.domain_kwargs['random_state'].get_state()
+        dks = {k: v for k, v in self.domain_kwargs.items()}
+        dks['random_state'] = (rng[0], list(rng[1]), rng[2], rng[3], rng[4])
+
         jsonified.update({
             'domain': self.domain.name,
             'domain_args': self.domain_args,
-            'domain_kwargs': {}
+            'callback': dill.dumps(self.callback),
+            'domain_kwargs': dks
         })
 
         for key, val in self.domain_kwargs.items():

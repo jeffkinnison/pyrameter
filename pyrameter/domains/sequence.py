@@ -44,9 +44,13 @@ class SequenceDomain(Domain):
             self._complexity = np.product([d.complexity for d in self.domain])
         return self._complexity
 
+    @classmethod
+    def from_json(cls, obj):
+        pass
+
     def generate(self):
         """Generate a hyperparameter value from this domain."""
-        return tuple(self.callback([d.generate() for d in self.domain]))
+        return tuple([self.callback(d.generate()) for d in self.domain])
 
     def to_index(self, value):
         """Convert a value to its index in the domain."""
@@ -55,3 +59,10 @@ class SequenceDomain(Domain):
         except ValueError:
             idx = None
         return idx
+
+    def to_json(self):
+        jsonified = super().to_json()
+        jsonified.update({
+            'domain': tuple([d.to_json() for d in self.domain]),
+            'callback': dill.dumps(self.callback)
+        })

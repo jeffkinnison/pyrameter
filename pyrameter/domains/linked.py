@@ -39,22 +39,22 @@ class DependentDomain(Domain):
     def __ge__(self, other):
         if other is self.domain or other == self.domain:
             return True
-        return hash(self) >= other(hash)
+        return super().__ge__(other)
 
     def __gt__(self, other):
         if other is self.domain or other == self.domain:
             return True
-        return hash(self) > other(hash)
+        return super().__gt__(other)
 
     def __le__(self, other):
         if other is self.domain or other == self.domain:
             return True
-        return hash(self) <= other(hash)
+        return super().__le__(other)
 
     def __lt__(self, other):
         if other is self.domain or other == self.domain:
             return True
-        return hash(self) < other(hash)
+        return super().__lt__(other)
 
     @property
     def complexity(self):

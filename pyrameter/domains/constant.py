@@ -24,6 +24,11 @@ class ConstantDomain(Domain):
         super(ConstantDomain, self).__init__(name)
         self.domain = domain
 
+    @classmethod
+    def from_json(cls, obj):
+        domain = cls(obj['name'], obj['domain'])
+        return domain
+
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return self.domain

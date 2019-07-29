@@ -6,8 +6,11 @@ Domain
     Base class for hyperparameter domains.
 """
 
+import importlib
 import inspect
 import itertools
+import os
+import re
 
 
 class MetaDomain(type):
@@ -44,31 +47,38 @@ class Domain(object, metaclass=MetaDomain):
         return self._current
 
     def __eq__(self, other):
-        return hash(self) == hash(other)
+        return self.name == other.name
 
     def __ge__(self, other):
-        return hash(self) >= hash(other)
+        return self.name >= other.name
 
     def __gt__(self, other):
-        return hash(self) > hash(other)
+        return self.name > other.name
 
     def __hash__(self):
         return hash(self.name)
 
     def __le__(self, other):
-        return hash(self) <= hash(other)
+        return self.name <= other.name
 
     def __lt__(self, other):
-        return hash(self) < hash(other)
+        return self.name < other.name
 
     def __ne__(self, other):
-        return hash(self) != hash(other)
+        return self.name != other.name
 
     @property
     def complexity(self):
         if self._complexity is None:
             self._complexity = 1
         return self._complexity
+
+    @staticmethod
+    def from_json(obj):
+        mod, cls = os.path.splitext(obj['type'])
+        mod = importlib.import_module(mod)
+        cls = getattr(mod, cls.strip('.'))
+        return cls.from_json(obj)
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
@@ -83,4 +93,7 @@ class Domain(object, metaclass=MetaDomain):
 
     def to_json(self):
         """Convert the domain to a JSON-compatible format."""
-        return {'name': self.name}
+        classname = re.match(r"^<class '(.+)'>$",
+                             str(self.__class__)).groups()[0]
+        return {'name': self.name,
+                'type': classname}

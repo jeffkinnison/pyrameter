@@ -31,6 +31,11 @@ class ExhaustiveDomain(DiscreteDomain):
     def __init__(self, name, domain):
         super(ExhaustiveDomain, self).__init__(name, domain)
 
+    @classmethod
+    def from_json(cls, obj):
+        domain = cls(obj['name'], obj['domain'])
+        return domain
+
     @property
     def complexity(self):
         if self._complexity is None:
@@ -45,8 +50,4 @@ class ExhaustiveDomain(DiscreteDomain):
 
     def to_json(self):
         jsonified = super(ExhaustiveDomain, self).to_json()
-        del jsonified['random_state']
-        jsonified.update({
-            'exhaustive': True
-        })
         return jsonified

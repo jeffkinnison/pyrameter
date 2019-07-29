@@ -76,8 +76,6 @@ class Trial(object, metaclass=TrialMeta):
         self.results = results
         self.objective = objective
         self.errmsg = errmsg
-        self._dirty = True
-
 
         self.status = None
         self.set_status()
@@ -93,6 +91,24 @@ class Trial(object, metaclass=TrialMeta):
         self.__dict__[key] = val
         if 'status' in self.__dict__ and start_val != val:
             self.set_status()
+
+    def __eq__(self, other):
+        return (self.searchspace == other.searchspace and
+                self.hyperparameters == other.hyperparameters and
+                self.results == other.results and
+                self.objective == other.objective and
+                self.errmsg == other.errmsg and
+                self.status == other.status)
+
+    @classmethod
+    def from_json(cls, obj):
+        trial = cls(obj['searchspace'],
+                    hyperparameters=obj['hyperparameters'],
+                    results=obj['results'],
+                    objective=obj['objective'],
+                    errmsg=obj['errmsg'])
+        trial.dirty = False
+        return trial
 
     @property
     def parameter_dict(self):
@@ -144,5 +160,6 @@ class Trial(object, metaclass=TrialMeta):
             status=self.status.value,
             hyperparameters=self.hyperparameters,
             results=self.results,
-            objective=self.objective
+            objective=self.objective,
+            errmsg=self.errmsg
         )

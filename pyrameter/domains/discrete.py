@@ -8,6 +8,7 @@ DiscreteDomain
 
 from collections import Sequence
 
+import dill
 import numpy as np
 import scipy.stats
 
@@ -55,6 +56,21 @@ class DiscreteDomain(Domain):
             except ZeroDivisionError:
                 self._complexity = 1
         return self._complexity
+
+    @classmethod
+    def from_json(cls, obj):
+        if 'random_state' in obj:
+            rng = obj['domain_kwargs']['random_state']
+            random_state = np.random.RandomState()
+            random_state.set_state((rng[0], np.array(rng[1], dtype=np.uint32),
+                                    rng[2], rng[3], rng[4]))
+            del obj['random_state']
+        else:
+            random_state = obj['random_state']
+            del obj['random_state']
+        domain = cls(obj['name'], obj['domain'],
+                     callback=dill.loads(obj['callback']), seed=random_state)
+        return domain
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
