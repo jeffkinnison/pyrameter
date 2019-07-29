@@ -49,6 +49,9 @@ class Specification(object):
     def __hash__(self):
         return hash(self.name)
 
+    def __contains__(self, key):
+        return (key in self.children)
+
     def __getattr__(self, key):
         if 'children' in self.__dict__ and key in self.__dict__['children']:
             return self.children[key]
@@ -64,7 +67,7 @@ class Specification(object):
                 self.children[key] = DiscreteDomain(key, val)
             elif isinstance(val, tuple):
                 self.children[key] = SequenceDomain(key, val)
-            elif isinstance(val, Domain):
+            elif isinstance(val, (Domain, Specification)):
                 self.children[key] = val
             else:
                 self.children[key] = ConstantDomain(key, val)
