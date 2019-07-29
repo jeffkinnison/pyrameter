@@ -1,14 +1,13 @@
 import pytest
 
-from pyrameter.db import MongoStorage
+from pyrameter.backend.mongo import MongoBackend
 
 
-class TestMongoStorage(object):
-    def test_init(self):
-        pass
+def test_init():
+    pass
 
-    def test_load(self):
-        pass
+def test_load():
+    pass
 
-    def test_save(self):
-        pass
+def test_save():
+    pass

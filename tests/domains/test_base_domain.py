@@ -5,13 +5,11 @@ from pyrameter.domains.base import Domain
 
 def test_init():
     d = Domain()
-    assert d.id == 0
     assert d.name is None
     assert d._current is None
     assert d._complexity is None
 
     d = Domain('foo')
-    assert d.id  == 1
     assert d.name == 'foo'
     assert d._current is None
     assert d._complexity is None
@@ -53,7 +51,9 @@ def test_to_index():
 
 def test_to_json():
     d = Domain()
-    assert d.to_json() == {'name': None}
+    assert d.to_json() == {'name': None,
+                           'type': 'pyrameter.domains.base.Domain'}
 
     d = Domain('foo')
-    assert d.to_json() == {'name': 'foo'}
+    assert d.to_json() == {'name': 'foo',
+                           'type': 'pyrameter.domains.base.Domain'}

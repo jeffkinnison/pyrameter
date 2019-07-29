@@ -6,7 +6,6 @@ from pyrameter.domains.exhaustive import ExhaustiveDomain
 
 def test_init():
     d = ExhaustiveDomain('foo', [1, 2, 3, 4])
-    assert d.id == 0
     assert d.name == 'foo'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
     assert d.random_state is None
@@ -14,7 +13,6 @@ def test_init():
     assert d._current is None
 
     d = ExhaustiveDomain('bar', range(1, 5))
-    assert d.id == 1
     assert d.name == 'bar'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
     assert d._complexity is None
@@ -24,7 +22,6 @@ def test_init():
     domains = [1, 1.0, 'hi', (1, 2), True, False, None]
     for i, name, domain in zip(range(len(names)), names, domains):
         d = ExhaustiveDomain(name, domain)
-        assert d.id == i + 2
         assert d.name == name
         assert isinstance(d.domain, list)
         assert d.domain[0] == domain
@@ -63,16 +60,17 @@ def test_to_json():
     d = ExhaustiveDomain('foo', [1, 2, 3, 4])
     correct = {
         'name': 'foo',
+        'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
         'domain': [1, 2, 3, 4],
-        'exhaustive': True
     }
+    print(d.to_json())
     assert d.to_json() == correct
 
     d = ExhaustiveDomain('bar', range(1, 5))
     correct = {
         'name': 'bar',
+        'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
         'domain': [1, 2, 3, 4],
-        'exhaustive': True
     }
     assert d.to_json() == correct
 
@@ -82,7 +80,7 @@ def test_to_json():
         d = ExhaustiveDomain(name, domain)
         correct = {
             'name': name,
-            'domain': [domain],
-            'exhaustive': True
+            'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
+            'domain': [domain]
         }
         assert d.to_json() == correct

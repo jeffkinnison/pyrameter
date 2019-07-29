@@ -11,7 +11,6 @@ def test_init():
 
     for i, name, domain in zip(range(len(domains)), names, domains):
         d = ContinuousDomain(name, domain)
-        assert d.id  == i
         assert d.name == name
         assert d.domain is getattr(scipy.stats, domain)
         assert d._current is None
@@ -85,6 +84,7 @@ def test_to_json():
     rs = np.random.RandomState(42).get_state()
     correct = {
         'name': 'foo',
+        'type': 'pyrameter.domains.continuous.ContinuousDomain',
         'domain': 'uniform',
         'domain_args': tuple(),
         'domain_kwargs': {
@@ -98,6 +98,7 @@ def test_to_json():
     rs = np.random.RandomState(1337).get_state()
     correct = {
         'name': 'foo',
+        'type': 'pyrameter.domains.continuous.ContinuousDomain',
         'domain': 'uniform',
         'domain_args': tuple(),
         'domain_kwargs': {

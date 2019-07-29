@@ -1,14 +1,13 @@
 import pytest
 
 from pyrameter.domains import *
-from pyrameter.domains.searchspace import SearchSpace
+from pyrameter.searchspace import SearchSpace
 from pyrameter.trial import Trial, TrialStatus
 
 
 def test_init():
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s)
-    assert t.id == 0
     assert t.searchspace() is s
     assert t.hyperparameters is None
     assert t.results is None
@@ -19,7 +18,6 @@ def test_init():
 
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s, hyperparameters=[8])
-    assert t.id == 1
     assert t.searchspace() is s
     assert t.hyperparameters == [8]
     assert t.results is None
@@ -30,7 +28,6 @@ def test_init():
 
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s, hyperparameters=[8], results={'loss': 10}, objective=10)
-    assert t.id == 2
     assert t.searchspace() is s
     assert t.hyperparameters == [8]
     assert t.results == {'loss': 10}
@@ -42,7 +39,6 @@ def test_init():
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s, hyperparameters=[8], results={'loss': 10}, objective=10,
               errmsg='HI!')
-    assert t.id == 3
     assert t.searchspace() is s
     assert t.hyperparameters == [8]
     assert t.results == {'loss': 10}
@@ -59,7 +55,7 @@ def test_parameter_dict():
 
 
     s = SearchSpace([ConstantDomain('/A', 8), ConstantDomain('/B/a/b', 2)])
-    t = Trial(s, hyperparameters=[2, 8])
+    t = Trial(s, hyperparameters=[8, 2])
     assert t.parameter_dict == {'A': 8, 'B': {'a': {'b': 2}}}
 
     s = SearchSpace([ConstantDomain('/A', 8), ConstantDomain('/B/a/b', 2),
@@ -75,7 +71,8 @@ def test_to_json():
                            'status': TrialStatus.INIT.value,
                            'hyperparameters': None,
                            'results': None,
-                           'objective': None}
+                           'objective': None,
+                           'errmsg': None}
 
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s, hyperparameters=[8])
@@ -83,7 +80,8 @@ def test_to_json():
                            'status': TrialStatus.READY.value,
                            'hyperparameters': [8],
                            'results': None,
-                           'objective': None}
+                           'objective': None,
+                           'errmsg': None}
 
     s = SearchSpace([ConstantDomain('A', 8)])
     t = Trial(s, hyperparameters=[8], objective=0.374)
@@ -91,4 +89,14 @@ def test_to_json():
                            'status': TrialStatus.READY.value,
                            'hyperparameters': [8],
                            'results': None,
-                           'objective': 0.374}
+                           'objective': 0.374,
+                           'errmsg': None}
+
+    s = SearchSpace([ConstantDomain('A', 8)])
+    t = Trial(s, hyperparameters=[8], objective=0.374, errmsg='hi')
+    assert t.to_json() == {'searchspace': s.id,
+                           'status': TrialStatus.ERROR.value,
+                           'hyperparameters': [8],
+                           'results': None,
+                           'objective': 0.374,
+                           'errmsg': 'hi'}

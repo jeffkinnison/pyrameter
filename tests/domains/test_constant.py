@@ -9,7 +9,6 @@ def test_init():
 
     for i, name, domain in zip(range(len(domains)), names, domains):
         d = ConstantDomain(name, domain)
-        assert d.id  == i
         assert d.name == name
         assert d.domain == domain
         assert isinstance(d.domain, type(domain))
@@ -60,4 +59,7 @@ def test_to_json():
 
     for name, domain in zip(names, domains):
         d = ConstantDomain(name, domain)
-        assert d.to_json() == {'name': name, 'domain': domain}
+        assert d.to_json() == {
+            'name': name,
+            'type': 'pyrameter.domains.constant.ConstantDomain',
+            'domain': domain}

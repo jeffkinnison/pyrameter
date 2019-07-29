@@ -6,7 +6,6 @@ from pyrameter.domains.discrete import DiscreteDomain
 
 def test_init():
     d = DiscreteDomain('foo', [1, 2, 3, 4])
-    assert d.id == 0
     assert d.name == 'foo'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
     assert d.random_state is None
@@ -14,7 +13,6 @@ def test_init():
     assert d._current is None
 
     d = DiscreteDomain('bar', range(1, 5), seed=42)
-    assert d.id == 1
     assert d.name == 'bar'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
     assert d._complexity is None
@@ -32,7 +30,6 @@ def test_init():
     domains = [1, 1.0, 'hi', (1, 2), True, False, None]
     for i, name, domain in zip(range(len(names)), names, domains):
         d = DiscreteDomain(name, domain)
-        assert d.id == i + 2
         assert d.name == name
         assert isinstance(d.domain, list)
         assert d.domain[0] == domain
@@ -91,6 +88,7 @@ def test_to_json():
     d = DiscreteDomain('foo', [1, 2, 3, 4])
     correct = {
         'name': 'foo',
+        'type': 'pyrameter.domains.discrete.DiscreteDomain',
         'domain': [1, 2, 3, 4],
         'random_state': None
     }
@@ -100,6 +98,7 @@ def test_to_json():
     rs = np.random.RandomState(42).get_state()
     correct = {
         'name': 'bar',
+        'type': 'pyrameter.domains.discrete.DiscreteDomain',
         'domain': [1, 2, 3, 4],
         'random_state': [rs[0], list(rs[1]), rs[2], rs[3], rs[4]]
     }
@@ -111,6 +110,7 @@ def test_to_json():
         d = DiscreteDomain(name, domain)
         correct = {
             'name': name,
+            'type': 'pyrameter.domains.discrete.DiscreteDomain',
             'domain': [domain],
             'random_state': None
         }
