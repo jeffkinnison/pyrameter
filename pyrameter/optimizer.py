@@ -67,11 +67,9 @@ class FMin(object):
 
         self._did_sort = False
 
-        print(method)
         try:
             self.method = getattr(pyrameter.methods, method)
         except AttributeError:
-            print(method)
             self.method = pyrameter.methods.random
 
     def generate(self, ssid=None):
