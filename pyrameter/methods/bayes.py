@@ -9,7 +9,7 @@ bayes_opt
 import numpy as np
 import scipy.stats
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernel import Matern
+from sklearn.gaussian_process.kernels import Matern
 
 from pyrameter.methods.random import random_search
 from pyrameter.trial import Trial

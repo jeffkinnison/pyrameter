@@ -20,4 +20,5 @@ def random_search(space):
     values : list
         Values generated from ``space``.
     """
+    print(space)
     return space()

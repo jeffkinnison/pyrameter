@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 
 from pyrameter.methods.random import random_search
-from pyrameter.trials import Trial
+from pyrameter.trial import Trial
 
 
 def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
