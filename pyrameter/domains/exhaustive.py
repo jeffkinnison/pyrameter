@@ -50,4 +50,5 @@ class ExhaustiveDomain(DiscreteDomain):
 
     def to_json(self):
         jsonified = super(ExhaustiveDomain, self).to_json()
+        del jsonified['random_state']
         return jsonified
