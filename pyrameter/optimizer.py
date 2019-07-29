@@ -12,6 +12,7 @@ from pyrameter.backend import *
 from pyrameter.domains.base import Domain
 from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
+from pyrameter.searchspace import SearchSpace
 from pyrameter.specification import Specification
 
 
@@ -20,6 +21,9 @@ class FMin(object):
 
     Parameters
     ----------
+    exp_key : str
+        Unique key for this experiment (e.g., the name of the experiment,
+        name+number, etc.).
     spec
         Specification of the hyperparameter domains to optimize.
     method : {'random','tpe','spearmint','smac'}
@@ -34,7 +38,9 @@ class FMin(object):
     method : callable
     """
 
-    def __init__(self, spec, method, backend):
+    def __init__(self, exp_key, spec, method, backend):
+        self.exp_key = exp_key
+
         if not isinstance(spec, Specification):
             if isinstance(spec, JointDomain):
                 spec = Specification('', **spec.domain)
@@ -46,7 +52,8 @@ class FMin(object):
                 spec = Specification('', domain=spec)
 
         self.spec = spec
-        self.searchspaces = self.spec.split()
+        self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
+                             for ss in self.spec.split()]
 
         if isinstance(backend, str):
             if '.json' in backend:
@@ -54,15 +61,17 @@ class FMin(object):
         else:
             self.backend = backend
 
-        if not isinstance(self.backend, JSONBackend):
+        if not isinstance(self.backend, BaseBackend):
             raise ValueError(
                 'Provided backend {} is not a valid backend.'.format(self.backend))
 
         self._did_sort = False
 
+        print(method)
         try:
             self.method = getattr(pyrameter.methods, method)
         except AttributeError:
+            print(method)
             self.method = pyrameter.methods.random
 
     def generate(self, ssid=None):
@@ -94,7 +103,8 @@ class FMin(object):
             idx = np.random.choice(np.arange(len(self.searchspaces)), p=probs)
             params = self.method(self.searchspaces[idx])
         else:
-            params = self.method(self.searchspaces[ssid])
+            searchspace = [ss for ss in self.searchspaces if ss.id == ssid][0]
+            params = self.method(searchspace)
         return params
 
     def load(self):
@@ -105,8 +115,9 @@ class FMin(object):
         """Retrieve the optimal observed set of hyperparameter values."""
         best = None
         for searchspace in self.searchspaces:
-            if best is None or searchspace.optimum.objective > best.objective:
-                best = searchspace.optimum.objective
+            candidate = searchspace.optimum()
+            if best is None or candidate.objective < best.objective:
+                best = candidate
         return best
 
     def register_result(self, ssid, trial_id, objective=None, results=None,
