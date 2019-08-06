@@ -54,6 +54,7 @@ class FMin(object):
         self.spec = spec
         self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
                              for ss in self.spec.split()]
+        self.trials = {}
 
         if isinstance(backend, str):
             if '.json' in backend:
@@ -61,7 +62,7 @@ class FMin(object):
         else:
             self.backend = backend
 
-        if not isinstance(self.backend, BaseBackend):
+        if not isinstance(self.backend, BaseBackend) and self.backend is not None:
             raise ValueError(
                 'Provided backend {} is not a valid backend.'.format(self.backend))
 
@@ -71,6 +72,9 @@ class FMin(object):
             self.method = getattr(pyrameter.methods, method)
         except AttributeError:
             self.method = pyrameter.methods.random
+
+    def copy(self):
+        return FMin(self.exp_key, self.spec, self.method, self.backend)
 
     def generate(self, ssid=None):
         """Generate a set of hyperparameters from a search space.
@@ -99,15 +103,17 @@ class FMin(object):
                 probs = np.ones(len(self.searchspaces))
             probs /= probs.sum()
             idx = np.random.choice(np.arange(len(self.searchspaces)), p=probs)
-            params = self.method(self.searchspaces[idx])
+            trial = self.searchspaces[idx](method=self.method)
         else:
             searchspace = [ss for ss in self.searchspaces if ss.id == ssid][0]
-            params = self.method(searchspace)
-        return params
+            trial = searchspace(method=self.method)
+        self.trials[trial.id] = trial
+        return trial
 
     def load(self):
         """Load experiment state from the backend."""
-        self.searchspaces = self.backend.load()
+        if self.backend is not None:
+            self.searchspaces = self.backend.load()
 
     def optimum(self):
         """Retrieve the optimal observed set of hyperparameter values."""
@@ -137,14 +143,17 @@ class FMin(object):
             Error message output by the trial if it failed.
         """
         searchspace = [ss for ss in self.searchspaces if str(ss.id) == ssid][0]
-        trial = [t for t in searchspace.results if t.id == str(trial_id)][0]
+        trial = [t for t in searchspace.trials if str(t.id) == str(trial_id)][0]
         trial.objective = objective
         trial.results = results
         trial.errmsg = errmsg
+        if trial.id not in self.trials:
+            self.trials[trial.id] = trial
 
     def save(self):
         """Save the state of the experiment."""
-        self.backend.save(self.searchspaces)
+        if self.backend is not None:
+            self.backend.save(self.searchspaces)
 
     def sort_spaces(self, use_complexity=True, use_uncertainty=True):
         """Sort the search spaces being optimized with heuristic properties.
@@ -174,3 +183,7 @@ class FMin(object):
         if use_complexity or use_uncertainty:
             self.searchspaces.sort(key=lambda x: x.rank)
             self._did_sort = True
+
+    @property
+    def trial_count(self):
+        return len(self.trials)
