@@ -77,6 +77,8 @@ class Trial(object, metaclass=TrialMeta):
         self.objective = objective
         self.errmsg = errmsg
 
+        self.submissions = 0
+
         self.status = None
         self.set_status()
 

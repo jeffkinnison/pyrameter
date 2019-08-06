@@ -164,12 +164,15 @@ class FMin(object):
         trial.errmsg = errmsg
         if trial.id not in self.trials:
             self.trials[trial.id] = trial
+        trial.submissions += 1
 
         if searchspace.complexity == 1:
             n_done = sum([1 for t in searchspace.trials
                           if t.status.value == 3])
             if n_done > self.max_evals:
                 searchspace.done = True
+
+        return trial.submissions, trial.hyperparameters
 
     def save(self):
         """Save the state of the experiment."""
