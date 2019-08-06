@@ -18,6 +18,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 from pyrameter.domains.base import Domain
+from pyrameter.methods.random import random_search
 from pyrameter.trial import Trial
 
 
@@ -49,7 +50,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         self.domains = domains if domains is not None else []
         self.domains.sort()
 
-    def __call__(self, to_dict=False):
+    def __call__(self, method=None, to_dict=False):
         """Generate a new trial for this search space.
 
         Parameters
@@ -65,7 +66,9 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             nested dictionary of hyperparameter values matching the structure
             of the original specification.
         """
-        hyperparameters = self.generate()
+        if method is None:
+            method = random_search
+        hyperparameters = method(self)
         trial = Trial(self, hyperparameters=hyperparameters)
         self.trials.append(trial)
         return trial.parameter_dict if to_dict else trial
@@ -146,7 +149,8 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             The trial with the optimal observed value of the objective
             function.
         """
-        return sorted(self.trials, key=lambda x: x.objective,
+        return sorted([t for t in self.trials if t.objective is not None],
+                      key=lambda x: x.objective,
                       reverse=(mode == 'max'))[0]
 
     def to_array(self):
