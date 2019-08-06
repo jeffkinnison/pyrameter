@@ -50,6 +50,8 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         self.domains = domains if domains is not None else []
         self.domains.sort()
 
+        self.done = False
+
     def __call__(self, method=None, to_dict=False):
         """Generate a new trial for this search space.
 

@@ -38,7 +38,7 @@ class FMin(object):
     method : callable
     """
 
-    def __init__(self, exp_key, spec, method, backend):
+    def __init__(self, exp_key, spec, method, backend, max_evals=None):
         self.exp_key = exp_key
 
         if not isinstance(spec, Specification):
@@ -55,6 +55,8 @@ class FMin(object):
         self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
                              for ss in self.spec.split()]
         self.trials = {}
+
+        self.max_evals = max_evals
 
         if isinstance(backend, str):
             if '.json' in backend:
@@ -103,11 +105,24 @@ class FMin(object):
                 probs = np.ones(len(self.searchspaces))
             probs /= probs.sum()
             idx = np.random.choice(np.arange(len(self.searchspaces)), p=probs)
-            trial = self.searchspaces[idx](method=self.method)
+
+            while self.searchspaces[idx].done and idx < len(self.searchspaces):
+                idx += 1
+
+            try:
+                trial = self.searchspaces[idx](method=self.method)
+            except IndexError:
+                trial = None
         else:
             searchspace = [ss for ss in self.searchspaces if ss.id == ssid][0]
-            trial = searchspace(method=self.method)
-        self.trials[trial.id] = trial
+
+            if not ss.done:
+                trial = searchspace(method=self.method)
+            else:
+                trial = None
+
+        if trial is not None:
+            self.trials[trial.id] = trial
         return trial
 
     def load(self):
@@ -149,6 +164,12 @@ class FMin(object):
         trial.errmsg = errmsg
         if trial.id not in self.trials:
             self.trials[trial.id] = trial
+
+        if searchspace.complexity == 1:
+            n_done = sum([1 for t in searchspace.trials
+                          if t.status.value == 3])
+            if n_done > self.max_evals:
+                searchspace.done = True
 
     def save(self):
         """Save the state of the experiment."""
