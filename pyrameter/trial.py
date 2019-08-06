@@ -129,7 +129,6 @@ class Trial(object, metaclass=TrialMeta):
         for i, domain in enumerate(self.searchspace().domains):
             curr = params
             path = domain.name.strip('/').split('/')
-            print(path)
             for p in path[:-1]:
                 if p not in curr:
                     curr[p] = {}
