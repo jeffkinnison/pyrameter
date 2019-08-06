@@ -26,10 +26,17 @@ class ConditionalDomain(Domain):
 
     """
 
-    def __init__(self, name, domain, callback=None):
-        super(ConditionalDomain, self).__init__(name)
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(ConditionalDomain, self).__init__(args[0])
+            self.domain = args[1]
+        elif len(args) == 1:
+            super(ConditionalDomain, self).__init__()
+            self.domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
 
-        self.domain = domain
+        callback = kwargs.pop('callback', None)
 
         self.callback = callback if callback is not None else lambda x: x
 

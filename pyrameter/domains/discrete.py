@@ -32,8 +32,18 @@ class DiscreteDomain(Domain):
 
     """
 
-    def __init__(self, name, domain, callback=None, seed=None):
-        super(DiscreteDomain, self).__init__(name)
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(DiscreteDomain, self).__init__(args[0])
+            domain = args[1]
+        elif len(args) == 1:
+            super(DiscreteDomain, self).__init__()
+            domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
+
+        callback = kwargs.pop('callback', None)
+        seed = kwargs.pop('seed', None)
 
         if not isinstance(domain, Sequence) or isinstance(domain, (str, tuple)):
             domain = [domain]

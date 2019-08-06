@@ -28,14 +28,37 @@ class SequenceDomain(Domain):
 
     """
 
-    def __init__(self, name, domain, callback=None):
-        super(SequenceDomain, self).__init__(name)
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(SequenceDomain, self).__init__(args[0])
+            domain = args[1]
+        elif len(args) == 1:
+            super(SequenceDomain, self).__init__()
+            domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
 
         if not isinstance(domain, tuple):
             domain = tuple([domain])
 
-        self.domain = domain
+        adjusted_domains = []
+        for d in domain:
+            if isinstance(d, dict):
+                adjusted_domains.append(Specification(d))
+            elif isinstance(val, JointDomain):
+                adjusted_domains.append(Specification(name=d.name, **d.domain))
+            elif isinstance(val, list):
+                adjusted_domains.append(DiscreteDomain(d))
+            elif isinstance(val, tuple):
+                adjusted_domains.append(SequenceDomain(d))
+            elif isinstance(d, (Domain, Specification)):
+                adjusted_domains.append(d)
+            else:
+                adjusted_domains.append(ConstantDomain(d))
 
+        self.domain = tuple(adjusted_domains)
+
+        callback = kwargs.pop('callback', None)
         self.callback = callback if callback is not None else lambda x: x
 
     @property

@@ -26,14 +26,22 @@ class DependentDomain(Domain):
 
     """
 
-    def __init__(self, name, domain, callback=None):
-        super(DependentDomain, self).__init__(name)
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(DependentDomain, self).__init__(args[0])
+            domain = args[1]
+        elif len(args) == 1:
+            super(DependentDomain, self).__init__()
+            domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
 
         if not isinstance(domain, Domain):
-            raise InvalidDomainError()
+            raise ValueError('{} is not a valid pyrameter Domain.'.format(domain))
 
         self.domain = domain
 
+        callback = kwargs.pop('callback', None)
         self.callback = callback if callback is not None else lambda x: x
 
     def __ge__(self, other):

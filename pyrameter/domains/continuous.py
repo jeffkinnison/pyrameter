@@ -32,27 +32,44 @@ class ContinuousDomain(Domain):
 
     """
 
-    def __init__(self, name, domain, *domain_args, callback=None, seed=None,
-                 **domain_kwargs):
-        super(ContinuousDomain, self).__init__(name)
-        try:
+    def __init__(self, *args, **kwargs):
+        if len(args) == 0:
+            raise ValueError('No domain provided.')
+        elif len(args) == 1:
+            super(ContinuousDomain, self).__init__()
+            domain = args[0]
+            args = args[1:]
+        else:
+            if isinstance(args[0], str) and isinstance(args[1], str):
+                super(ContinuousDomain, self).__init__(args[0])
+                domain = args[1]
+                args = args[2:]
+            else:
+                super(ContinuousDomain, self).__init__()
+                domain = args[0]
+                args = args[1:]
+
+        if isinstance(domain, str) and hasattr(scipy.stats, domain):
             self.domain = getattr(scipy.stats, domain)
-        except AttributeError:
+        elif isinstance(domain, scipy.stats.rv_continuous):
             self.domain = domain
+        else:
+            raise ValueError('No domain provided.')
+
+        callback = kwargs.pop('callback', None)
+        seed = kwargs.pop('seed', None)
 
         self.callback = callback if callback is not None else lambda x: x
         self.seed = seed
 
-        domain_kwargs.pop('callback', None)
-        domain_kwargs.pop('seed', None)
 
         if seed is not None:
             if isinstance(seed, int):
                 seed = np.random.RandomState(seed)
-            domain_kwargs['random_state'] = seed
+            kwargs['random_state'] = seed
 
-        self.domain_args = domain_args
-        self.domain_kwargs = domain_kwargs
+        self.domain_args = args
+        self.domain_kwargs = kwargs
 
     @property
     def complexity(self):

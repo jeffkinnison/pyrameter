@@ -20,9 +20,15 @@ class ConstantDomain(Domain):
         The single value in this domain.
     """
 
-    def __init__(self, name, domain):
-        super(ConstantDomain, self).__init__(name)
-        self.domain = domain
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(ConstantDomain, self).__init__(args[0])
+            self.domain = args[1]
+        elif len(args) == 1:
+            super(ConstantDomain, self).__init__()
+            self.domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
 
     @classmethod
     def from_json(cls, obj):

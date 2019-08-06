@@ -8,10 +8,10 @@ ExhaustiveDomain
 
 from collections import Sequence
 
-from pyrameter.domains.discrete import DiscreteDomain
+from pyrameter.domains.base import Domain
 
 
-class ExhaustiveDomain(DiscreteDomain):
+class ExhaustiveDomain(Domain):
     """Discrete/categorical domain for exhaustive grid search.
 
     Parameters
@@ -28,8 +28,15 @@ class ExhaustiveDomain(DiscreteDomain):
     graphs. As of now, it is not directly used to generate values.
     """
 
-    def __init__(self, name, domain):
-        super(ExhaustiveDomain, self).__init__(name, domain)
+    def __init__(self, *args, **kwargs):
+        if len(args) >= 2:
+            super(ExhaustiveDomain, self).__init__(args[0])
+            self.domain = args[1]
+        elif len(args) == 1:
+            super(ExhaustiveDomain, self).__init__()
+            self.domain = args[0]
+        else:
+            raise ValueError('No domain provided.')
 
     @classmethod
     def from_json(cls, obj):

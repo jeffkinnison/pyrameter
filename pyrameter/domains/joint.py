@@ -24,15 +24,16 @@ class JointDomain(Domain):
         value is a domain.
     """
 
-    def __init__(self, name, **domains):
-        super(JointDomain, self).__init__(name)
-        self.domain = domains
+    def __init__(self, *args, **kwargs):
+        if len(args) > 0:
+            super(JointDomain, self).__init__(args[0])
+        self.domain = kwargs
 
     def __getattr__(self, key):
         try:
             return self.domains[key]
         except KeyError:
-            return super(JointDomain, self).__getattr__(key)
+            return getattr(super(JointDomain, self), key)
 
     @property
     def complexity(self):
