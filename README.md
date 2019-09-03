@@ -21,23 +21,34 @@ $ pip install .
 - `scipy`
 - `scikit-learn`
 - `pymongo`
+- `dill`
+- `six`
 
 ## A Short Example
 
 ```python
-import pyrameter.build
-from pyrameter import Scope, ContinuousDomain, DiscreteDomain
-import scipy.stats
+import math
+    import pyrameter
 
-# Define a set of search domains
-spec = Scope(x=ContinuousDomain(scipy.stats.uniform, loc=0, scale=1),
-             y=DiscreteDomain([i for i in range(100)]))
+    # Minimize the sin function
+    def objective(params):
+        return math.sin(params['x'])
 
-# Build the model of the search.
-model = pyrameter.build(space, method='random', )
+    # Uniformly sample values over [0, pi]
+    space = {
+        'x': pyrameter.uniform(0, math.pi),
+        
+    }
 
-# Generate parameter values
-params = model.generate()
+    # Set up the search with an experiment key, the domains to search, and
+    # random search to generate values.
+    opt = pyrameter.FMin('sin_exp', space, 'random')
 
-# params is a dictionary, e.g. {'x': 0.34786, 'y': 27}
+    # Try 1000 values of x and store the result.
+    for i in range(1000):
+        trial = opt.generate()
+        trial.objective = objective(trial.hyperparameters)
+
+    # Print the x that minimized sin
+    print(opt.optimum)
 ```
