@@ -59,7 +59,5 @@ def bayes_opt(space, n_samples=10, warm_up=10, **gp_kws):
 
         # Return the candidate with the best expected improvement
         params = potential_params[np.argmax(ei, axis=1)]
-        params = Trial(space, hyperparameters=params)
-        space.results.append(params)
 
     return params
