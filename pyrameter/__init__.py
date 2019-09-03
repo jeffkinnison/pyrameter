@@ -1,6 +1,12 @@
-from .build import build
-from .scope import Scope
-from .domain import ContinuousDomain, DiscreteDomain, ExhaustiveDomain
-from .modelgroup import ModelGroup
+"""Structured hyperparameter optimization with flexible methods and storage."""
 
-__all___ = ['Scope', 'ContinuousDomain', 'DiscreteDomain', 'ExhaustiveDomain']
+from .optimizer import FMin
+from .domains import *
+
+
+def uniform(loc, scale):
+    return ContinuousDomain('uniform', loc=loc, scale=scale)
+
+
+def normal(mu, sigma):
+    return ContinuousDomain('normal', loc=mu, scale=sigma)
