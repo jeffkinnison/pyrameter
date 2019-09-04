@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pyrameter',
-    version='0.1a1',
+    version='0.1',
     description='Structure, sample, and savor hyperparameter searches',
     url='https://github.com/jeffkinnison/pyrameter',
     author='Jeff Kinnison',
@@ -15,12 +15,10 @@ setup(
               # 'pyrameter.models',
               # 'pyrameter.db'],
     classifiers=[
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
-        'Intended Audience :: Users',
-        'License :: MIT',
-        'Topic :: Machine Learning :: Hyperparameter Optimization',
-        'Topic :: Distributed Systems :: Task Allocation',
+        'License :: OSI Approved :: MIT License',
+        'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -28,15 +26,14 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Operating System :: POSIX',
         'Operating System :: Unix',
-        'Operating System :: MacOS',
     ],
     keywords='machine_learning hyperparameters',
     install_requires=[
         'dill',
-        'numpy>=1.12.0',
+        'numpy',
         'pymongo',
-        'scipy>=0.18.1',
-        'scikit-learn>=0.18.1',
+        'scipy',
+        'scikit-learn',
         'six',
     ],
 )
