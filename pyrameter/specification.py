@@ -68,8 +68,9 @@ class Specification(object):
             elif isinstance(val, tuple):
                 self.children[key] = SequenceDomain(key, val)
             elif isinstance(val, (Domain, Specification)):
-                val.name = key
-                self.children[key] = val
+                copyval = copy.deepcopy(val)
+                copyval.name = key
+                self.children[key] = copyval
             else:
                 self.children[key] = ConstantDomain(key, val)
         else:
