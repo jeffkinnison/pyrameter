@@ -158,21 +158,41 @@ class FMin(object):
             Error message output by the trial if it failed.
         """
         searchspace = [ss for ss in self.searchspaces if str(ss.id) == ssid][0]
-        trial = [t for t in searchspace.trials if str(t.id) == str(trial_id)][0]
-        trial.objective = objective
-        trial.results = results
-        trial.errmsg = errmsg
-        if trial.id not in self.trials:
-            self.trials[trial.id] = trial
-        trial.submissions += 1
 
-        if searchspace.complexity == 1:
-            n_done = sum([1 for t in searchspace.trials
-                          if t.status.value == 3])
-            if n_done > self.max_evals:
-                searchspace.done = True
+        if not isinstance(trial_id, list):
+            trial = [t for t in searchspace.trials if str(t.id) == str(trial_id)][0]
+            trial.objective = objective
+            trial.results = results
+            trial.errmsg = errmsg
+            hyperparameters = trial.hyperparameters
+            if trial.id not in self.trials:
+                self.trials[trial.id] = trial
+            trial.submissions += 1
 
-        return trial.submissions, trial.hyperparameters
+            if searchspace.complexity == 1:
+                n_done = sum([1 for t in searchspace.trials
+                              if t.status.value == 3])
+                if n_done > self.max_evals:
+                    searchspace.done = True
+        else:
+            hyperparameters = []
+            for i, tid in enumerate(trial_id):
+                trial = [t for t in searchspace.trials if str(t.id) == str(tid)][0]
+                trial.objective = objective[i]
+                trial.results = results[i]
+                trial.errmsg = errmsg
+                hyperparameters.append(trial.hyperparameters)
+                if trial.id not in self.trials:
+                    self.trials[trial.id] = trial
+                trial.submissions += 1
+
+                if searchspace.complexity == 1:
+                    n_done = sum([1 for t in searchspace.trials
+                                  if t.status.value == 3])
+                    if n_done > self.max_evals:
+                        searchspace.done = True
+
+        return trial.submissions, hyperparameters
 
     def save(self):
         """Save the state of the experiment."""
