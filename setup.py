@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='pyrameter',
-    version='0.1',
+    version='0.1.1',
     description='Structure, sample, and savor hyperparameter searches',
     url='https://github.com/jeffkinnison/pyrameter',
     author='Jeff Kinnison',
@@ -12,8 +12,6 @@ setup(
               'pyrameter.backend',
               'pyrameter.domains',
               'pyrameter.methods',],
-              # 'pyrameter.models',
-              # 'pyrameter.db'],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Science/Research',
