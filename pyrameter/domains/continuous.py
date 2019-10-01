@@ -74,8 +74,12 @@ class ContinuousDomain(Domain):
     @property
     def complexity(self):
         if self._complexity is None:
+            loc = self.domain_kwargs['loc'] if 'loc' in self.domain_kwargs \
+                  else 0
+            scl = self.domain_kwargs['scl'] if 'scl' in self.domain_kwargs \
+                  else 1
             a, b = self.domain.interval(0.999, *self.domain_args,
-                                        **self.domain_kwargs)
+                                        loc=loc, scale=scl)
             self._complexity = 2 + np.abs(b - a)
         return self._complexity
 
