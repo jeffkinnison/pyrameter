@@ -106,7 +106,7 @@ class FMin(object):
             probs /= probs.sum()
             idx = np.random.choice(np.arange(len(self.searchspaces)), p=probs)
 
-            while self.searchspaces[idx].done and idx < len(self.searchspaces):
+            while idx < len(self.searchspaces) and self.searchspaces[idx].done:
                 idx += 1
 
             try:
