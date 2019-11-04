@@ -67,6 +67,8 @@ class ContinuousDomain(Domain):
             if isinstance(seed, int):
                 seed = np.random.RandomState(seed)
             kwargs['random_state'] = seed
+        else:
+            kwargs['random_state'] = None
 
         self.domain_args = args
         self.domain_kwargs = kwargs
@@ -133,9 +135,13 @@ class ContinuousDomain(Domain):
     def to_json(self):
         jsonified = super(ContinuousDomain, self).to_json()
 
-        rng = self.domain_kwargs['random_state'].get_state()
-        dks = {k: v for k, v in self.domain_kwargs.items()}
-        dks['random_state'] = (rng[0], list(rng[1]), rng[2], rng[3], rng[4])
+        try:
+            rng = self.domain_kwargs['random_state'].get_state()
+            dks = {k: v for k, v in self.domain_kwargs.items()}
+            dks['random_state'] = (rng[0], list(rng[1]), rng[2], rng[3], rng[4])
+        except KeyError:
+            dks['random_state'] = None
+
 
         jsonified.update({
             'domain': self.domain.name,
