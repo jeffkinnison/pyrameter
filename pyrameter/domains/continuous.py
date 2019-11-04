@@ -135,19 +135,10 @@ class ContinuousDomain(Domain):
     def to_json(self):
         jsonified = super(ContinuousDomain, self).to_json()
 
-        try:
-            rng = self.domain_kwargs['random_state'].get_state()
-            dks = {k: v for k, v in self.domain_kwargs.items()}
-            dks['random_state'] = (rng[0], list(rng[1]), rng[2], rng[3], rng[4])
-        except KeyError:
-            dks['random_state'] = None
-
-
         jsonified.update({
             'domain': self.domain.name,
             'domain_args': self.domain_args,
-            'callback': dill.dumps(self.callback),
-            'domain_kwargs': dks
+            'domain_kwargs': {}
         })
 
         for key, val in self.domain_kwargs.items():
