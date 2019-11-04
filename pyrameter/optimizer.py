@@ -129,6 +129,9 @@ class FMin(object):
         """Load experiment state from the backend."""
         if self.backend is not None:
             self.searchspaces = self.backend.load()
+            for s in self.searchspaces:
+                for t in s.trials:
+                    self.trials[t.id] = t
 
     def optimum(self):
         """Retrieve the optimal observed set of hyperparameter values."""
