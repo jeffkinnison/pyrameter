@@ -55,6 +55,7 @@ class FMin(object):
         self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
                              for ss in self.spec.split()]
         self.trials = {}
+        self.active = [ss for ss in self.searchspaces]
 
         self.max_evals = max_evals
 
@@ -100,21 +101,26 @@ class FMin(object):
         if ssid is None:
             if self._did_sort:
                 probs = scipy.stats.planck.pmf(
-                    range(len(self.searchspaces)), 0.5)
+                    range(len(self.active)), 0.5)
             else:
-                probs = np.ones(len(self.searchspaces))
+                probs = np.ones(len(self.active))
             probs /= probs.sum()
-            idx = np.random.choice(np.arange(len(self.searchspaces)), p=probs)
+            idx = np.random.choice(np.arange(len(self.active)), p=probs)
 
-            while idx < len(self.searchspaces) and self.searchspaces[idx].done:
+            while idx < len(self.active) and self.active[idx].done:
                 idx += 1
 
             try:
-                trial = self.searchspaces[idx](method=self.method)
+                ss = self.active[idx]
+                if not ss.done:
+                    trial = ss(method=self.method)
+                else:
+                    trial = None
             except IndexError:
+                ss = None
                 trial = None
         else:
-            searchspace = [ss for ss in self.searchspaces if ss.id == ssid][0]
+            ss = [ss for ss in self.active if ss.id == ssid][0]
 
             if not ss.done:
                 trial = searchspace(method=self.method)
@@ -123,6 +129,8 @@ class FMin(object):
 
         if trial is not None:
             self.trials[trial.id] = trial
+        if ss and len(ss.trials) >= self.max_evals:
+            ss.done = True
         return trial
 
     def load(self):
@@ -177,6 +185,7 @@ class FMin(object):
                               if t.status.value == 3])
                 if n_done > self.max_evals:
                     searchspace.done = True
+                    self.active.remove(searchspace)
         else:
             hyperparameters = []
             for i, tid in enumerate(trial_id):
@@ -194,6 +203,7 @@ class FMin(object):
                                   if t.status.value == 3])
                     if n_done > self.max_evals:
                         searchspace.done = True
+                        self.active.remove(searchspace)
 
         return trial.submissions, hyperparameters
 
