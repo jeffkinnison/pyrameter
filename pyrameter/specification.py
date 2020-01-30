@@ -93,7 +93,7 @@ class Specification(object):
         if root is None:
             root = ''
 
-        root = os.path.join(root, self.name)
+        root = '.'.join([root, self.name])
 
         # Gather all sets of domains corresponding to differnt machine learning
         # algorithms to be hyperparameterized.
