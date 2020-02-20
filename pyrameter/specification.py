@@ -101,7 +101,7 @@ class Specification(object):
 
         # Iterate over all domains in this sepcification
         for key, val in self.children.items():
-            val.name = os.path.join(root, val.name)
+            val.name = '.'.join([root, val.name])
 
             # Recurse into nested specifications and merge the results
             if isinstance(val, Specification):
