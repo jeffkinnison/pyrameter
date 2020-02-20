@@ -35,16 +35,16 @@ class Domain(object, metaclass=MetaDomain):
     def __init__(self, name=None):
         self.id = next(self.__class__._counter)
         self.name = name
-        self._current = None
+        self.current = None
         self._complexity = None
 
     def __call__(self, *args, **kwargs):
         margs, mvargs, mkwargs, _ = inspect.getargspec(self.generate)
         if len(margs) > 1 or mvargs is not None or mkwargs is not None:
-            self._current = self.generate(*args, **kwargs)
+            self.current = self.generate(*args, **kwargs)
         else:
-            self._current = self.generate()
-        return self._current
+            self.current = self.generate()
+        return self.current
 
     def __eq__(self, other):
         return self.name == other.name
