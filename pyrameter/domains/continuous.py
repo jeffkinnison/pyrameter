@@ -69,7 +69,7 @@ class ContinuousDomain(Domain):
                 seed = np.random.RandomState(seed)
             kwargs['random_state'] = seed
         else:
-            seed = np.random.RandomState(np.random.randint(int(2**64 - 1), dtype=np.uint64))
+            seed = np.random.RandomState(np.random.randint(int(2**32 - 1), dtype=np.uint32))
             kwargs['random_state'] = seed
 
         self.domain_args = args
