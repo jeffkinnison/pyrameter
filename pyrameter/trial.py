@@ -8,6 +8,7 @@ Trial
 
 import enum
 import itertools
+import re
 import weakref
 
 
@@ -70,7 +71,7 @@ class Trial(object, metaclass=TrialMeta):
         self.id = next(self.__class__._counter)
         self.dirty = False
 
-        self.searchspace = weakref.ref(searchspace) \
+        self._searchspace = weakref.ref(searchspace) \
                            if searchspace is not None else None
         self.hyperparameters = hyperparameters
         self.results = results
@@ -128,7 +129,7 @@ class Trial(object, metaclass=TrialMeta):
             specification.
         """
         params = {}
-        for i, domain in enumerate(self.searchspace().domains):
+        for i, domain in enumerate(self.searchspace.domains):
             curr = params
             path = domain.name.strip('.').split('.')
             for p in path[:-1]:
@@ -137,6 +138,10 @@ class Trial(object, metaclass=TrialMeta):
                 curr = curr[p]
             curr[path[-1]] = self.hyperparameters[i]
         return params
+
+    @property
+    def searchspace(self):
+        return self._searchspace()
 
     def set_status(self):
         """Introspect to set the state of this trial."""
@@ -155,8 +160,8 @@ class Trial(object, metaclass=TrialMeta):
     def to_json(self):
         """Convert this trial to a JSON-compatible representation."""
         return dict(
-            searchspace=self.searchspace().id
-                        if hasattr(self.searchspace(), 'id')
+            searchspace=self.searchspace.id
+                        if hasattr(self.searchspace, 'id')
                         else self.searchspace,
             status=self.status.value,
             hyperparameters=self.hyperparameters,
