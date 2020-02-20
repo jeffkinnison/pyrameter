@@ -168,10 +168,10 @@ class FMin(object):
         errmsg : str
             Error message output by the trial if it failed.
         """
-        searchspace = [ss for ss in self.searchspaces if str(ss.id) == str(ssid)][0]
+        ss = [ss for ss in self.searchspaces if str(ss.id) == str(ssid)][0]
 
         if not isinstance(trial_id, list):
-            trial = [t for t in searchspace.trials if str(t.id) == str(trial_id)][0]
+            trial = [t for t in ss.trials if str(t.id) == str(trial_id)][0]
             trial.objective = objective
             trial.results = results
             trial.errmsg = errmsg
@@ -180,16 +180,16 @@ class FMin(object):
                 self.trials[trial.id] = trial
             trial.submissions += 1
 
-            if searchspace.complexity == 1:
-                n_done = sum([1 for t in searchspace.trials
+            if ss.complexity == 1:
+                n_done = sum([1 for t in ss.trials
                               if t.status.value == 3])
                 if n_done > self.max_evals:
-                    searchspace.done = True
-                    self.active.remove(searchspace)
+                    ss.done = True
+                    self.active.remove(ss)
         else:
             hyperparameters = []
             for i, tid in enumerate(trial_id):
-                trial = [t for t in searchspace.trials if str(t.id) == str(tid)][0]
+                trial = [t for t in ss.trials if str(t.id) == str(tid)][0]
                 trial.objective = objective[i]
                 trial.results = results[i]
                 trial.errmsg = errmsg
@@ -198,12 +198,12 @@ class FMin(object):
                     self.trials[trial.id] = trial
                 trial.submissions += 1
 
-                if searchspace.complexity == 1:
-                    n_done = sum([1 for t in searchspace.trials
+                if ss.complexity == 1:
+                    n_done = sum([1 for t in ss.trials
                                   if t.status.value == 3])
                     if n_done > self.max_evals:
-                        searchspace.done = True
-                        self.active.remove(searchspace)
+                        ss.done = True
+                        self.active.remove(ss)
 
         return trial.submissions, hyperparameters
 
