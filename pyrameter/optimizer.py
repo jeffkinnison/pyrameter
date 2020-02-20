@@ -57,7 +57,7 @@ class FMin(object):
         self.trials = {}
         self.active = [ss for ss in self.searchspaces]
 
-        self.max_evals = max_evals
+        self.max_evals = max_evals if max_evals is not None else np.inf
 
         if isinstance(backend, str):
             if '.json' in backend:
@@ -123,7 +123,7 @@ class FMin(object):
             ss = [ss for ss in self.active if ss.id == ssid][0]
 
             if not ss.done:
-                trial = searchspace(method=self.method)
+                trial = ss(method=self.method)
             else:
                 trial = None
 
@@ -168,7 +168,7 @@ class FMin(object):
         errmsg : str
             Error message output by the trial if it failed.
         """
-        searchspace = [ss for ss in self.searchspaces if str(ss.id) == ssid][0]
+        searchspace = [ss for ss in self.searchspaces if str(ss.id) == str(ssid)][0]
 
         if not isinstance(trial_id, list):
             trial = [t for t in searchspace.trials if str(t.id) == str(trial_id)][0]
