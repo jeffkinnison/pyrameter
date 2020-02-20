@@ -179,6 +179,20 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             out = None
         return out
 
+    def to_dataframe(self):
+        """Convert the trials in this search space into a Pandas dataframe.
+
+        Returns
+        -------
+        df : `pandas.DataFrame`
+            A DataFrame object with rows corresponding to trials in this
+            SearchSpace. Rows include the SearchSpace id, all hyperparameters,
+            and all recorded results.
+        """
+        df_dict = {'id': []}
+        for domain in self.domains:
+            df_dict = domain.name
+
     def to_json(self, simplify=False):
         """Convert this search space to a JSON-compatible representation."""
         jsonified = {
