@@ -5,6 +5,7 @@ Classes
 ContinuousDomain
     A continuous hyperparameter domain.
 """
+import sys
 
 import dill
 import numpy as np
@@ -68,7 +69,8 @@ class ContinuousDomain(Domain):
                 seed = np.random.RandomState(seed)
             kwargs['random_state'] = seed
         else:
-            kwargs['random_state'] = None
+            seed = np.random.RandomState(np.random.randint(2**32 - 1))
+            kwargs['random_state'] = seed
 
         self.domain_args = args
         self.domain_kwargs = kwargs
