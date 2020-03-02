@@ -102,6 +102,25 @@ class Trial(object, metaclass=TrialMeta):
                 self.objective == other.objective and
                 self.errmsg == other.errmsg and
                 self.status == other.status)
+    
+    def flatten_results(self):
+        if self.results, dict):
+            return {}
+
+        flat = {}
+
+        def recurse_nested(current, name=''):
+            if not isinstance(current, dict):
+                if name == '':
+                    name = 'results'
+                flat[name] = current
+            else:
+                for key in current.keys():
+                    recurse_nested(current[key], name='.'.join([name, key]))
+        
+        recurse_nested(self.results)
+        return flat
+
 
     @classmethod
     def from_json(cls, obj):
