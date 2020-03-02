@@ -29,6 +29,7 @@ setup(
     install_requires=[
         'dill',
         'numpy',
+        'pandas',
         'pymongo',
         'scipy',
         'scikit-learn',
