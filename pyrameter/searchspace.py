@@ -14,6 +14,7 @@ import operator
 import warnings
 
 import numpy as np
+import pandas as pd
 from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
@@ -189,9 +190,47 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             SearchSpace. Rows include the SearchSpace id, all hyperparameters,
             and all recorded results.
         """
-        df_dict = {'id': []}
-        for domain in self.domains:
-            df_dict = domain.name
+        df_dict = {'id': [], 'index': [], 'objective': []}
+        for i, trial in enumerate(self.trials):
+            df_dict['id'].append(trial.id)
+            df_dict['index'].append(i)
+            df_dict['objective'].append(trial.objective)
+            for j, domain in enumerate(self.domains):
+                if domain.name not in df_dict:
+                    df_dict[domain.name] = []
+                df_dict[domain.name].append(trial.hyperparameters[j])
+            if trial.results is not None:
+                results = 
+                for key, val in trial.flatten_results().items():
+                    if isinstance(val, (collections.Sequence, np.ndarray)):
+                        newkey = f'{key}_min'
+                        if newkey not in df_dict:
+                            df_dict[newkey] = []
+                        df_dict[newkey].append(np.min(val))
+
+                        newkey = f'{key}_max'
+                        if newkey not in df_dict:
+                            df_dict[newkey] = []
+                        df_dict[newkey].append(np.max(val))
+
+                        newkey = f'{key}_mean'
+                        if newkey not in df_dict:
+                            df_dict[newkey] = []
+                        df_dict[newkey].append(np.mean(val))
+
+                        newkey = f'{key}_std'
+                        if newkey not in df_dict:
+                            df_dict[newkey] = []
+                        df_dict[newkey].append(np.std(val))
+                    else:
+                        if key not in df_dict:
+                            df_dict[key] = []
+                        df_dict[key].append(val)
+        
+        df = pd.DataFrame.from_dict(df_dict)
+        return df
+
+            
 
     def to_json(self, simplify=False):
         """Convert this search space to a JSON-compatible representation."""
