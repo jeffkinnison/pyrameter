@@ -125,6 +125,16 @@ class Specification(object):
                             new_domainsets.append(ds1 + [newval])
                 if len(new_domainsets) > 0:
                     domainsets = new_domainsets
+            elif isinstance(val, RepeatedDomain) and val.should_split:
+                new_domainsets = []
+                split = val.split()
+                if self.exclusive:
+                    domainsets.extend(split)
+                else:
+                    for ds1 in domainsets:
+                        for ds2 in new_domainsets:
+                            new_domainsets.append(ds1 + [ds2])
+                domainsets = new_domainsets
             else:
                 if self.exclusive:
                     domainsets.append([val])
