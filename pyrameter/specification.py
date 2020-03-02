@@ -9,7 +9,9 @@ Specification
 import copy
 import os
 
-from pyrameter.domains import *
+from pyrameter.domains import Domain, ConstantDomain, ContinuousDomain, \
+                              DiscreteDomain, ExhaustiveDomain, JointDomain, \
+                              RepeatedDomain, SequenceDomain 
 
 
 class Specification(object):
@@ -67,6 +69,8 @@ class Specification(object):
                 self.children[key] = DiscreteDomain(key, val)
             elif isinstance(val, tuple):
                 self.children[key] = SequenceDomain(key, val)
+            elif isinstance(val, RepeatedDomain) and isinstance(val.domain[0], JointDomain):
+                self.children[key] = RepeatedDomain(key, Specification(**val.domain[0].domain), val.repetitions)
             elif isinstance(val, (Domain, Specification)):
                 copyval = copy.deepcopy(val)
                 copyval.name = key

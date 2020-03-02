@@ -17,7 +17,6 @@ from pyrameter.domains.continuous import ContinuousDomain
 from pyrameter.domains.discrete import DiscreteDomain
 from pyrameter.domains.joint import JointDomain
 from pyrameter.domains.sequence import SequenceDomain
-from pyrameter.specification import Specification
 
 
 class RepeatedDomain(Domain):
@@ -66,14 +65,12 @@ class RepeatedDomain(Domain):
                 repetitions = args[1]
 
         if isinstance(domain, dict):
-            domain = Specification(domain)
-        elif isinstance(domain, JointDomain):
-            domain = Specification(name=domain.name, **domain.domain)
+            domain = JointDomain(**domain)
         elif isinstance(domain, list):
             domain = DiscreteDomain(domain)
         elif isinstance(domain, tuple):
             domain = SequenceDomain(domain)
-        elif isinstance(domain, (Domain, Specification)):
+        elif isinstance(domain, Domain):
             domain = domain
         else:
             domain = ConstantDomain(domain)

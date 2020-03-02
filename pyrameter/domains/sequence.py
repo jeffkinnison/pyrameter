@@ -14,7 +14,6 @@ from pyrameter.domains.constant import ConstantDomain
 from pyrameter.domains.continuous import ContinuousDomain
 from pyrameter.domains.discrete import DiscreteDomain
 from pyrameter.domains.joint import JointDomain
-from pyrameter.specification import Specification
 
 
 class SequenceDomain(Domain):
@@ -50,14 +49,12 @@ class SequenceDomain(Domain):
         adjusted_domains = []
         for d in domain:
             if isinstance(d, dict):
-                adjusted_domains.append(Specification(d))
-            elif isinstance(d, JointDomain):
-                adjusted_domains.append(Specification(name=d.name, **d.domain))
+                adjusted_domains.append(JointDomain(**d))
             elif isinstance(d, list):
                 adjusted_domains.append(DiscreteDomain(d))
             elif isinstance(d, tuple):
                 adjusted_domains.append(SequenceDomain(d))
-            elif isinstance(d, (Domain, Specification)):
+            elif isinstance(d, Domain):
                 adjusted_domains.append(d)
             else:
                 adjusted_domains.append(ConstantDomain(d))
