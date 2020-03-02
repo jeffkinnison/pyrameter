@@ -104,7 +104,7 @@ class Trial(object, metaclass=TrialMeta):
                 self.status == other.status)
     
     def flatten_results(self):
-        if self.results, dict):
+        if self.results is None:
             return {}
 
         flat = {}
