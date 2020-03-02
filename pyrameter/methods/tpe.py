@@ -5,7 +5,7 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 
 from pyrameter.methods.random import random_search
-from pyrameter.trial import Trial
+from pyrameter.trial import Trial, TrialStatus
 
 
 def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
@@ -37,15 +37,16 @@ def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
     # Warm up with random search and inject new random search
     # hyperparameters at an interval. This attempts to prevent TPE from
     # converging too quickly.
-    if len(space.objective) < warm_up or len(space.objective) % warm_up == 0:
+    n_complete = sum([1 for t in space.trials if t.status == TrialStatus.DONE])
+    if len(n_complete) < warm_up or len(n_complete) % warm_up == 0:
         params = random_search(space)
     else:
         params = []
 
         # Collect all of the evaluated hyperparameter values and their
         # associated objective function value into a feature vector.
-        features = space.to_array().T
-        losses = np.array(space.objective)
+        data = space.to_array().T
+        features, losses = data[:, :-1], data[:, -1]
 
         # Sort the hyperparameters by their performance and split into
         # the "best" and "rest" performers.
