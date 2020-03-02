@@ -6,9 +6,15 @@ SequenceDomain
     Multiple hyperparameter domains grouped together.
 """
 
+import dill
 import numpy as np
 
 from pyrameter.domains.base import Domain
+from pyrameter.domains.constant import ConstantDomain
+from pyrameter.domains.continuous import ContinuousDomain
+from pyrameter.domains.discrete import DiscreteDomain
+from pyrameter.domains.joint import JointDomain
+from pyrameter.specification import Specification
 
 
 class SequenceDomain(Domain):
@@ -45,11 +51,11 @@ class SequenceDomain(Domain):
         for d in domain:
             if isinstance(d, dict):
                 adjusted_domains.append(Specification(d))
-            elif isinstance(val, JointDomain):
+            elif isinstance(d, JointDomain):
                 adjusted_domains.append(Specification(name=d.name, **d.domain))
-            elif isinstance(val, list):
+            elif isinstance(d, list):
                 adjusted_domains.append(DiscreteDomain(d))
-            elif isinstance(val, tuple):
+            elif isinstance(d, tuple):
                 adjusted_domains.append(SequenceDomain(d))
             elif isinstance(d, (Domain, Specification)):
                 adjusted_domains.append(d)
@@ -69,7 +75,8 @@ class SequenceDomain(Domain):
 
     @classmethod
     def from_json(cls, obj):
-        pass
+        domain = cls(obj['name'], [Domain.from_json(d) for d in obj['domains']],
+                 callback=dill.loads(obj['callback']))
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
