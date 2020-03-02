@@ -200,7 +200,6 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
                     df_dict[domain.name] = []
                 df_dict[domain.name].append(trial.hyperparameters[j])
             if trial.results is not None:
-                results = 
                 for key, val in trial.flatten_results().items():
                     if isinstance(val, (collections.Sequence, np.ndarray)):
                         newkey = f'{key}_min'
