@@ -11,6 +11,7 @@ import functools
 import itertools
 from multiprocessing.pool import ThreadPool
 import operator
+import os
 import warnings
 
 import numpy as np
@@ -19,6 +20,7 @@ from sklearn.gaussian_process import GaussianProcessRegressor
 from sklearn.gaussian_process.kernels import RBF
 
 from pyrameter.domains.base import Domain
+from pyrameter.domains.linked import DependentDomain
 from pyrameter.methods.random import random_search
 from pyrameter.trial import Trial, TrialStatus
 
@@ -49,7 +51,16 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         self._uncertainty = None
 
         self.domains = domains if domains is not None else []
+        for d1 in self.domains:
+            if isinstance(d1, DependentDomain):
+                d1_prefix = os.path.splitext(d1.name)[0]
+                d2_name = os.path.splitext(d1.domain.name)[0]
+                name = f'{d1_prefix}.{d2_name}'
+                for d2 in self.domains:
+                    if name == d2.name:
+                        d1.domain = d2 
         self.domains.sort()
+
 
         self.done = False
 
@@ -72,6 +83,8 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         if method is None:
             method = random_search
         hyperparameters = method(self)
+        for i, d in enumerate(self.domains):
+            d.current = hyperparameters[i]
         trial = Trial(self, hyperparameters=hyperparameters)
         self.trials.append(trial)
         return trial.parameter_dict if to_dict else trial
@@ -134,7 +147,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         hyperparameters : list
             List of hyperparameters in order of domain name.
         """
-        return [d.generate() for d in self.domains]
+        return [d() for d in self.domains]
 
     def optimum(self, mode='min'):
         """Get the trial with the optimal performance.
