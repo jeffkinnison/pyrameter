@@ -50,19 +50,16 @@ class RepeatedDomain(Domain):
     """
     
     def __init__(self, *args, **kwargs):
-        if len(args) == 0:
-            raise ValueError('No domain provided.')
-        elif len(args) == 1:
+        if len(args) < 2:
             raise ValueError('No domain or number of repetitions provided')
+        if len(args) == 2:
+            super(RepeatedDomain, self).__init__()
+            domain = args[0]
+            repetitions = args[1]
         else:
-            if isinstance(args[0], str) and isinstance(args[1], str):
-                super(RepeatedDomain, self).__init__(args[0])
-                domain = args[1]
-                repetitions = args[2]
-            else:
-                super(RepeatedDomain, self).__init__()
-                domain = args[0]
-                repetitions = args[1]
+            super(RepeatedDomain, self).__init__(args[0])
+            domain = args[1]
+            repetitions = args[2]
 
         if isinstance(domain, dict):
             domain = JointDomain(**domain)
@@ -103,7 +100,7 @@ class RepeatedDomain(Domain):
 
     def split(self):
         if self.should_split:
-            return [RepeatedDomain(self.name, self.domains[0], i) for i in range(1, self.repetitions)]
+            return [RepeatedDomain(self.name, self.domain[0], i) for i in range(1, self.repetitions)]
         else:
             return self
 

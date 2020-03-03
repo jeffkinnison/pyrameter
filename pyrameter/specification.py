@@ -136,7 +136,7 @@ class Specification(object):
                     domainsets.extend(split)
                 else:
                     for ds1 in domainsets:
-                        for ds2 in new_domainsets:
+                        for ds2 in split:
                             new_domainsets.append(ds1 + [ds2])
                 domainsets = new_domainsets
             else:
