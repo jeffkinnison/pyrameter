@@ -83,4 +83,5 @@ def tpe(space, best_split=0.2, n_samples=10, warm_up=20, **gmm_kws):
             # Add the value with the best expected improvement
             domain = space.domains[j]
             params.append(domain.map_to_domain(best[0], bound=True))
+            domain.current = params[-1]
     return params

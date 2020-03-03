@@ -63,6 +63,7 @@ def bayes_opt(space, n_samples=100, warm_up=10, **gp_kws):
             params.append(potential_params[np.argmax(ei, axis=1)[0]])
 
             domain = space.domains[j]
-            params[j] = domain.map_to_domain(float(params[j]), bound=True)
+            params.append(domain.map_to_domain(float(params[j]), bound=True))
+            domain.current = params[-1]
 
     return params
