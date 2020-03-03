@@ -56,12 +56,12 @@ class DependentDomain(Domain):
 
     def __le__(self, other):
         if other is self.domain or other == self.domain:
-            return True
+            return False
         return super().__le__(other)
 
     def __lt__(self, other):
         if other is self.domain or other == self.domain:
-            return True
+            return False
         return super().__lt__(other)
 
     @property
@@ -72,7 +72,7 @@ class DependentDomain(Domain):
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
-        return self.callback(self.domain._current)
+        return self.callback(self.domain.current)
 
     def to_index(self, value):
         """Convert a value to its index in the domain."""

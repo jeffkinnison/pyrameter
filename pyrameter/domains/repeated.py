@@ -72,7 +72,9 @@ class RepeatedDomain(Domain):
         else:
             domain = ConstantDomain(domain)
 
-        self.domain = [copy.deepcopy(domain) for _ in range(repetitions)]
+        self.domain = [domain for _ in range(repetitions)]
+        for i, d in self.domain:
+            d.name = f'{d.name}_{i}'
         self.repetitions = repetitions
 
         split = kwargs.pop('split', True)
