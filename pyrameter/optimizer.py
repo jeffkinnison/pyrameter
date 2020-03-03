@@ -5,6 +5,9 @@ Classes
 FMin
     Minimize an objective function to optimize a set of hyperparameters.
 """
+import pprint
+
+import matplotlib.pyplot as plt
 import numpy as np
 import scipy.stats
 
@@ -14,6 +17,7 @@ from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
 from pyrameter.searchspace import SearchSpace
 from pyrameter.specification import Specification
+from pyrameter.trial import TrialStatus
 
 
 class FMin(object):
@@ -150,6 +154,29 @@ class FMin(object):
                 best = candidate
         return best
 
+    def plot_objective(self, show=True, save=False, filename=None):
+        for ss in self.searchspaces:
+            objs = list(filter(lambda x: x.status == TrialStatus.DONE, ss.trials))
+            objs = sorted(objs, key=lambda x: x.id)
+            objs = np.array(list(map(lambda x: x.objective, objs)))
+
+            plt.plot(np.arange(objs.shape[0]), objs, label='Space f{ss.id}')
+        
+        plt.grid(which='both')
+        plt.xlabel('Trial')
+        plt.ylabel('Objective')
+        plt.title('Search Overview')
+        plt.gcf().set_size_inches(10, 10)
+        
+        if save:
+            if filename is None:
+                filename = f'{self.exp_key}_performance.png'
+            plt.savefig(filename)
+
+        if show:
+            plt.show()
+
+
     def register_result(self, ssid, trial_id, objective=None, results=None,
                         errmsg=None):
         """Register a result in the proper trial.
@@ -240,6 +267,41 @@ class FMin(object):
         if use_complexity or use_uncertainty:
             self.searchspaces.sort(key=lambda x: x.rank)
             self._did_sort = True
+    
+    def to_dataframes(self):
+        dfs = [ss.to_dataframe() for ss in self.searchspaces]
+        return dfs
+
+    def summary(self):
+        total = len(self.trials)
+        success = sum([1 for v in self.trials.values() if v.status == TrialStatus.DONE])
+        pending = sum([1 for v in self.trials.values() if v.status in [TrialStatus.INIT, TrialStatus.READY]])
+        error = sum([1 for v in self.trials.values() if v.status == TrialStatus.ERROR])
+
+        opt = self.optimum()
+
+        print('\n')
+        print(f'Experiment {self.exp_key}')
+        print('-------------------------------------------------------------------')
+        print(f'{total} Trials\t{pending} Pending\t{success} Successes\t{error} Errors')
+        print('-------------------------------------------------------------------')
+        print('\n')
+        if success > 0:
+            print('Optimal')
+            print('-------------------------------------------------------------------')
+            print(f'Trial {opt.id}\t{opt.objective} Loss')
+            print('\n')
+            print('with hyperparameters')
+            print('\n')
+            pprint.pprint(opt.parameter_dict)
+            print('\n')
+            print('and additional results')
+            print('\n')
+            pprint.pprint(opt.results)
+            print('-------------------------------------------------------------------')
+            print('\n')
+        else:
+            print('No completed trials found. Check for issues and re-run the search.')
 
     @property
     def trial_count(self):

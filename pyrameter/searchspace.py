@@ -20,7 +20,7 @@ from sklearn.gaussian_process.kernels import RBF
 
 from pyrameter.domains.base import Domain
 from pyrameter.methods.random import random_search
-from pyrameter.trial import Trial
+from pyrameter.trial import Trial, TrialStatus
 
 
 class SearchSpaceMeta(type):
@@ -167,13 +167,14 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             of domain name, with the value of the objective as the final entry
             in the row. If no trials have been conducted, returns ``None``.
         """
+        completed = [t for t in self.trials if t.status == TrialStatus.DONE]
         if len(self.trials) > 0:
-            out = np.zeros((len(self.trials), len(self.domains) + 1),
+            out = np.zeros((len(completed), len(self.domains) + 1),
                   dtype=np.float32)
 
-            for i, result in enumerate(self.trials):
-                vec = [self.domains[j].map_to_domain(result.hyperparameters[j])
-                       for j in range(len(self.domains))]
+            for i, result in enumerate(completed):
+                vec = [float(self.domains[j].map_to_domain(result.hyperparameters[j]))
+                    for j in range(len(self.domains))]
                 vec.append(result.objective)
                 out[i] += np.asarray(vec)
         else:
@@ -201,30 +202,14 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
                 df_dict[domain.name].append(trial.hyperparameters[j])
             if trial.results is not None:
                 for key, val in trial.flatten_results().items():
-                    if isinstance(val, (collections.Sequence, np.ndarray)):
-                        newkey = f'{key}_min'
-                        if newkey not in df_dict:
-                            df_dict[newkey] = []
-                        df_dict[newkey].append(np.min(val))
-
-                        newkey = f'{key}_max'
-                        if newkey not in df_dict:
-                            df_dict[newkey] = []
-                        df_dict[newkey].append(np.max(val))
-
-                        newkey = f'{key}_mean'
-                        if newkey not in df_dict:
-                            df_dict[newkey] = []
-                        df_dict[newkey].append(np.mean(val))
-
-                        newkey = f'{key}_std'
-                        if newkey not in df_dict:
-                            df_dict[newkey] = []
-                        df_dict[newkey].append(np.std(val))
-                    else:
-                        if key not in df_dict:
-                            df_dict[key] = []
-                        df_dict[key].append(val)
+                    if key not in df_dict:
+                        df_dict[key] = []
+                    
+                    if isinstance(val, np.floating):
+                        return float(val)
+                    elif isinstance(val, (np.integer, np.unsignedinteger)):
+                        return int(val)
+                    df_dict[key].append(val)
         
         df = pd.DataFrame.from_dict(df_dict)
         return df
