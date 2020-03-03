@@ -72,9 +72,10 @@ class Specification(object):
             elif isinstance(val, RepeatedDomain) and isinstance(val.domain[0], JointDomain):
                 self.children[key] = RepeatedDomain(key, Specification(**val.domain[0].domain), val.repetitions)
             elif isinstance(val, (Domain, Specification)):
-                copyval = copy.deepcopy(val)
-                copyval.name = key
-                self.children[key] = copyval
+                # copyval = copy.deepcopy(val)
+                # copyval.name = key
+                val.name = key
+                self.children[key] = val
             else:
                 self.children[key] = ConstantDomain(key, val)
         else:
@@ -109,7 +110,7 @@ class Specification(object):
 
             # Recurse into nested specifications and merge the results
             if isinstance(val, Specification):
-                subdomainsets = val.split()
+                subdomainsets = val.split(root=val.name)
                 if self.exclusive:
                     domainsets.extend(subdomainsets)
                 else:
@@ -133,11 +134,18 @@ class Specification(object):
                 new_domainsets = []
                 split = val.split()
                 if self.exclusive:
+                    for s in split:
+                        if isinstance(s, Specification):
+                            s = s.split(root=val.name)
                     domainsets.extend(split)
                 else:
                     for ds1 in domainsets:
                         for ds2 in split:
-                            new_domainsets.append(ds1 + [ds2])
+                            if isinstance(ds2, Specification):
+                                ds2 = ds2.split(root=val.name)
+                                new_domainsets.extend([d1 + d for d in ds2])
+                            else:
+                                new_domainsets.append(ds1 + [ds2])
                 domainsets = new_domainsets
             else:
                 if self.exclusive:
