@@ -13,9 +13,10 @@ import scipy.stats
 
 from pyrameter.backend import *
 from pyrameter.domains.base import Domain
+from pyrameter.domains.exhaustive import ExhaustiveDomain
 from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
-from pyrameter.searchspace import SearchSpace
+from pyrameter.searchspace import SearchSpace, GridSearchSpace
 from pyrameter.specification import Specification
 from pyrameter.trial import TrialStatus
 
@@ -56,8 +57,11 @@ class FMin(object):
                 spec = Specification('', domain=spec)
 
         self.spec = spec
-        self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
-                             for ss in self.spec.split()]
+        if method ['grid', 'random', 'bayes', 'smac', 'tpe']:
+            self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
+                                 if not all([isinstance(d, ExhaustiveDomain) for d in ss])
+                                 else GridSearchSpace(ss, exp_key=exp_key)
+                                 for ss in self.spec.split()]
         self.trials = {}
         self.active = [ss for ss in self.searchspaces]
 
