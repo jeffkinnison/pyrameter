@@ -69,12 +69,14 @@ class RepeatedDomain(Domain):
             domain = SequenceDomain(domain)
         elif isinstance(domain, Domain):
             domain = domain
+        elif hasattr(domain, '__class__') and 'Specification' in str(domain.__class__):
+            domain = domain
         else:
             domain = ConstantDomain(domain)
 
-        self.domain = [domain for _ in range(repetitions)]
-        for i, d in self.domain:
-            d.name = f'{d.name}_{i}'
+        self.domain = [copy.deepcopy(domain) for _ in range(repetitions)]
+        for i, d in enumerate(self.domain):
+            d.name = f'{self.name}___{i}'
         self.repetitions = repetitions
 
         split = kwargs.pop('split', True)

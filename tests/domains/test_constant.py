@@ -12,7 +12,7 @@ def test_init():
         assert d.name == name
         assert d.domain == domain
         assert isinstance(d.domain, type(domain))
-        assert d._current is None
+        assert d.current is None
         assert d._complexity is None
 
 
@@ -42,7 +42,7 @@ def test_map_to_domain():
     d = ConstantDomain('foo', 1.0)
 
     for i in inputs:
-        assert d.map_to_domain(i) == i
+        assert d.map_to_domain(i) == 1.0
 
 
 def test_to_index():
@@ -50,7 +50,7 @@ def test_to_index():
     d = ConstantDomain('foo', 1.0)
 
     for i in inputs:
-        assert d.to_index(i) == i
+        assert d.to_index(i) == 0
 
 
 def test_to_json():

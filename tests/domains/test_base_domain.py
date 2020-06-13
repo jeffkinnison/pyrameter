@@ -6,12 +6,12 @@ from pyrameter.domains.base import Domain
 def test_init():
     d = Domain()
     assert d.name is None
-    assert d._current is None
+    assert d.current is None
     assert d._complexity is None
 
     d = Domain('foo')
     assert d.name == 'foo'
-    assert d._current is None
+    assert d.current is None
     assert d._complexity is None
 
 
@@ -38,7 +38,8 @@ def test_map_to_domain():
     d = Domain()
 
     for i in inputs:
-        assert d.map_to_domain(i) == i
+        with pytest.raises(NotImplementedError):
+            d.map_to_domain(i)
 
 
 def test_to_index():

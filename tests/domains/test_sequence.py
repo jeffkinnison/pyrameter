@@ -2,10 +2,11 @@ import numpy as np
 import pytest
 
 from pyrameter.domains.discrete import DiscreteDomain
+from pyrameter.domains.sequence import DiscreteDomain
 
 
 def test_init():
-    d = DiscreteDomain('foo', [1, 2, 3, 4])
+    d = SequenceDomain('foo', [1, 2, 3, 4])
     assert d.name == 'foo'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
     assert d.random_state is None

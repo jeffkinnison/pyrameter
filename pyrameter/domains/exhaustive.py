@@ -20,12 +20,6 @@ class ExhaustiveDomain(Domain):
         Name of the domain.
     domain : list
         The grid to search.
-
-    Notes
-    -----
-    Instead of using internal tracking to determine which part of the grid to
-    search, this domain is a placeholder used to spawn multiple search space
-    graphs. As of now, it is not directly used to generate values.
     """
 
     def __init__(self, *args, **kwargs):
@@ -38,9 +32,18 @@ class ExhaustiveDomain(Domain):
         else:
             raise ValueError('No domain provided.')
 
+        if isinstance(self.domain, range):
+            self.domain = list(self.domain)
+
+        if not isinstance(self.domain, list):
+            self.domain = [self.domain]
+
+        self._index = 0
+
     @classmethod
     def from_json(cls, obj):
         domain = cls(obj['name'], obj['domain'])
+        domain._index = obj.get('index', 0)
         return domain
 
     @property
@@ -48,14 +51,44 @@ class ExhaustiveDomain(Domain):
         if self._complexity is None:
             try:
                 self._complexity = 2 - (1 / len(self.domain))
-            except ZeroDivisionError:
+            except (TypeError, ZeroDivisionError):
                 self._complexity = 1
         return self._complexity
 
     def generate(self):
-        raise NotImplementedError
+        if len(self.domain) > 0:
+            val = self.domain[self._index]
+            self._index += 1
+            
+            if self._index >= len(self.domain):
+                self._index = 0
+        else:
+            val = None
+        
+        return val
+
+    def map_to_domain(self, idx, bound=True):
+        if bound:
+            idx = int(round(idx))
+            idx = min(len(self.domain) - 1, max(0, idx))
+        elif not bound and idx < 0:
+            idx = len(self.domain)
+        try:
+            val = self.domain[idx]
+        except IndexError:
+            val = None
+        return val
+
+    def to_index(self, value):
+        """Convert a value to its index in the domain."""
+        try:
+            idx = self.domain.index(value)
+        except ValueError:
+            idx = None
+        return idx
 
     def to_json(self):
         jsonified = super(ExhaustiveDomain, self).to_json()
-        del jsonified['random_state']
+        jsonified['domain'] = list(self.domain)
+        jsonified['index'] = self._index
         return jsonified

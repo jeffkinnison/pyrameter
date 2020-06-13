@@ -80,7 +80,7 @@ class ContinuousDomain(Domain):
         if self._complexity is None:
             loc = self.domain_kwargs['loc'] if 'loc' in self.domain_kwargs \
                   else 0
-            scl = self.domain_kwargs['scl'] if 'scl' in self.domain_kwargs \
+            scl = self.domain_kwargs['scale'] if 'scale' in self.domain_kwargs \
                   else 1
             a, b = self.domain.interval(0.999, *self.domain_args,
                                         loc=loc, scale=scl)

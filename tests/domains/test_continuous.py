@@ -13,7 +13,7 @@ def test_init():
         d = ContinuousDomain(name, domain)
         assert d.name == name
         assert d.domain is getattr(scipy.stats, domain)
-        assert d._current is None
+        assert d.current is None
         assert d._complexity is None
 
 
