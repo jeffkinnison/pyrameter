@@ -93,6 +93,9 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         return len(self.domains) == len(other.domains) and \
             all(map(lambda x: x[0] == x[1], zip(self.domains, other.domains)))
 
+    def __deepcopy__(self, memo):
+        return super().__deepcopy__(memo)
+
     @property
     def complexity(self):
         """Estimate the relative combinatorial complexity of this search space.
@@ -147,6 +150,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         hyperparameters : list
             List of hyperparameters in order of domain name.
         """
+        print(self.domains)
         return [d() for d in self.domains]
 
     def optimum(self, mode='min'):
@@ -290,3 +294,63 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             self._uncertainty = 1
 
         return self._uncertainty
+
+
+class GridSearchSpace(SearchSpace):
+    """Hierarchical grid search domain organization and value generation.
+
+    To handle exhaustively searching a grid, instead of using a splitting
+    scheme domains are collected into iterators and values are generated in
+    order over all dimensions of the grid.
+    """
+    def __init__(self, domains, exp_key=''):
+        super().__init__(domains, exp_key=exp_key)
+        self._iterator = itertools.product(*self.domains)
+
+    def __call__(self, method=None, to_dict=False):
+        try:
+            hyperparameters = np.array(list(next(self._iterator)))
+            trial = Trial(self, hyperparameters=hyperparameters)
+            self.trials.append(trial)
+        except StopIteration:
+            self.done = True
+            return None
+
+    def restart(self):
+        self._iterator = itertools.product(*self.domains)
+
+
+class PopulationSearchSpace(SearchSpace):
+    """Hierarchical hyperparameter domain organization for population methods.
+
+    
+    """
+
+    def __init__(self, domains, population_size=50, exp_key=''):
+        super().__init__(domains, exp_key=exp_key)
+        self.population_size = population_size
+        self.population = []
+        self.best = None
+
+    def __call__(self, method=None, to_dict=False):
+        """Generate a new trial for this search space.
+
+        Parameters
+        ----------
+        to_dict : bool
+            Convert the hyperparameter values to a nested dictionary on return.
+
+        Returns
+        -------
+        trial : ``pyrameter.trial.Trial`` or dict
+            Trial data, including hyperparameter values and metadata for a
+            database. If ``to_dict`` is ``True``, instead return only the
+            nested dictionary of hyperparameter values matching the structure
+            of the original specification.
+        """
+        if method is None:
+            method = random_search
+        self.population = method(self)
+        trials = [Trial(self, hyperparameters=h) for h in self.population]
+        self.trials.extend(trials)
+        return [t.parameter_dict for t in trials] if to_dict else trials
