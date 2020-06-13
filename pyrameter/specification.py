@@ -7,6 +7,7 @@ Specification
 """
 
 import copy
+import itertools
 import os
 
 from pyrameter.domains import Domain, ConstantDomain, ContinuousDomain, \
@@ -54,6 +55,14 @@ class Specification(object):
     def __contains__(self, key):
         return (key in self.children)
 
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memo))
+        return result
+
     def __getattr__(self, key):
         if 'children' in self.__dict__ and key in self.__dict__['children']:
             return self.children[key]
@@ -72,10 +81,10 @@ class Specification(object):
             elif isinstance(val, RepeatedDomain) and isinstance(val.domain[0], JointDomain):
                 self.children[key] = RepeatedDomain(key, Specification(**val.domain[0].domain), val.repetitions)
             elif isinstance(val, (Domain, Specification)):
-                # copyval = copy.deepcopy(val)
-                # copyval.name = key
-                val.name = key
-                self.children[key] = val
+                copyval = copy.deepcopy(val)
+                copyval.name = key
+                # val.name = key
+                self.children[key] = copyval
             else:
                 self.children[key] = ConstantDomain(key, val)
         else:
@@ -141,11 +150,13 @@ class Specification(object):
                 else:
                     for ds1 in domainsets:
                         for ds2 in split:
-                            if isinstance(ds2, Specification):
-                                ds2 = ds2.split(root=val.name)
-                                new_domainsets.extend([d1 + d for d in ds2])
+                            subdomain = []
+                            if isinstance(ds2.domain[0], Specification):
+                                for d in ds2.domain:
+                                    subdomain.extend(itertools.chain.from_iterable(d.split(root=val.name)))
                             else:
-                                new_domainsets.append(ds1 + [ds2])
+                                subdomain.extend(ds2.domain)
+                            new_domainsets.extend([ds1 + subdomain])
                 domainsets = new_domainsets
             else:
                 if self.exclusive:
