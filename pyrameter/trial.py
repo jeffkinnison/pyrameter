@@ -151,11 +151,33 @@ class Trial(object, metaclass=TrialMeta):
         for i, domain in enumerate(self.searchspace.domains):
             curr = params
             path = domain.name.strip('.').split('.')
-            for p in path[:-1]:
+            for p in path:
                 if p not in curr:
-                    curr[p] = {}
-                curr = curr[p]
-            curr[path[-1]] = self.hyperparameters[i]
+                    if re.search(r'[_][_][_][\d]+', p):
+                        pnew, num = p.split('___')
+                        num = int(num)
+                        curr[pnew] = []
+                    else:
+                        curr[p] = {}
+
+                if re.search(r'[_][_][_][\d]+', p):
+                    pnew, num = p.split('___')
+                    num = int(num)
+                    if len(curr[pnew]) <= num:
+                        for i in range(len(curr[pnew]), num + 1):
+                            curr[pnew].append(None)
+
+                    if p != path[-1]:
+                        curr[pnew][num] = {}
+                        curr = curr[pnew][num]
+                    else:
+                        curr[pnew][num] = self.hyperparameters[i]
+                else:
+                    if p != path[-1]:
+                        curr = curr[p]
+                    else:
+                        curr[p] = self.hyperparameters[i]
+        print(params)
         return params
 
     @property
