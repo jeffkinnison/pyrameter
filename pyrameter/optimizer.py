@@ -57,11 +57,10 @@ class FMin(object):
                 spec = Specification('', domain=spec)
 
         self.spec = spec
-        if method ['grid', 'random', 'bayes', 'smac', 'tpe']:
-            self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
-                                 if not all([isinstance(d, ExhaustiveDomain) for d in ss])
-                                 else GridSearchSpace(ss, exp_key=exp_key)
-                                 for ss in self.spec.split()]
+        self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
+                                if not all([isinstance(d, ExhaustiveDomain) for d in ss])
+                                else GridSearchSpace(ss, exp_key=exp_key)
+                                for ss in self.spec.split()]
         self.trials = {}
         self.active = [ss for ss in self.searchspaces]
 
@@ -79,10 +78,13 @@ class FMin(object):
 
         self._did_sort = False
 
-        try:
-            self.method = getattr(pyrameter.methods, method)
-        except AttributeError:
-            self.method = pyrameter.methods.random
+        if callable(method):
+            self.method = method
+        else:
+            try:
+                self.method = getattr(pyrameter.methods, method)
+            except AttributeError:
+                self.method = pyrameter.methods.random
 
     def copy(self):
         return FMin(self.exp_key, self.spec, self.method, self.backend)
