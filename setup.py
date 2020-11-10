@@ -9,7 +9,7 @@ setup(
     version='0.2.0post1',
     description='Structure, sample, and savor hyperparameter searches',
     long_description=long_description,
-    long_description_content_type='text/markdown'
+    long_description_content_type='text/markdown',
     url='https://github.com/jeffkinnison/pyrameter',
     author='Jeff Kinnison',
     author_email='jkinniso@nd.edu',
