@@ -150,7 +150,6 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         hyperparameters : list
             List of hyperparameters in order of domain name.
         """
-        print(self.domains)
         return [d() for d in self.domains]
 
     def optimum(self, mode='min'):

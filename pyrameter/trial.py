@@ -177,7 +177,6 @@ class Trial(object, metaclass=TrialMeta):
                         curr = curr[p]
                     else:
                         curr[p] = self.hyperparameters[i]
-        print(params)
         return params
 
     @property

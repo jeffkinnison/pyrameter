@@ -107,8 +107,6 @@ class Specification(object):
         if root is None:
             root = ''
 
-        root = '.'.join([root, self.name])
-
         # Gather all sets of domains corresponding to differnt machine learning
         # algorithms to be hyperparameterized.
         domainsets = [[]] if not self.exclusive else []
