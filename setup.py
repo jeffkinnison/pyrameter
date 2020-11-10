@@ -1,10 +1,15 @@
 #!/usr/bin/env python
 from setuptools import setup
 
+with open('README.md', 'r') as f:
+    long_description = f.read()
+
 setup(
     name='pyrameter',
-    version='0.2.0',
+    version='0.2.0post1',
     description='Structure, sample, and savor hyperparameter searches',
+    long_description=long_description,
+    long_description_content_type='text/markdown'
     url='https://github.com/jeffkinnison/pyrameter',
     author='Jeff Kinnison',
     author_email='jkinniso@nd.edu',
