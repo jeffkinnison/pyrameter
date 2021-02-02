@@ -33,6 +33,7 @@ setup(
     keywords='machine_learning hyperparameters',
     install_requires=[
         'dill',
+        'matplotlib',
         'numpy',
         'pandas',
         'pymongo',
