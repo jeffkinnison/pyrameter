@@ -209,24 +209,24 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         """
         df_dict = {'id': [], 'index': [], 'objective': []}
         for i, trial in enumerate(self.trials):
-            df_dict['id'].append(trial.id)
-            df_dict['index'].append(i)
-            df_dict['objective'].append(trial.objective)
-            for j, domain in enumerate(self.domains):
-                if domain.name not in df_dict:
-                    df_dict[domain.name] = []
-                df_dict[domain.name].append(trial.hyperparameters[j])
-            if trial.results is not None:
-                for key, val in trial.flatten_results().items():
-                    if key not in df_dict:
-                        df_dict[key] = []
-                    
-                    if isinstance(val, np.floating):
-                        return float(val)
-                    elif isinstance(val, (np.integer, np.unsignedinteger)):
-                        return int(val)
-                    df_dict[key].append(val)
-        
+            if trial.status == TrialStatus.DONE:
+                df_dict['id'].append(trial.id)
+                df_dict['index'].append(i)
+                df_dict['objective'].append(trial.objective)
+                for j, domain in enumerate(self.domains):
+                    if domain.name not in df_dict:
+                        df_dict[domain.name] = []
+                    df_dict[domain.name].append(trial.hyperparameters[j])
+                if trial.results is not None:
+                    for key, val in trial.flatten_results().items():
+                        if key not in df_dict:
+                            df_dict[key] = []
+                        
+                        if isinstance(val, np.floating):
+                            return float(val)
+                        elif isinstance(val, (np.integer, np.unsignedinteger)):
+                            return int(val)
+                        df_dict[key].append(val)
         df = pd.DataFrame.from_dict(df_dict)
         return df
 
