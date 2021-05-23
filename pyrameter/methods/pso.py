@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.stats import uniform
 
-from pyramter.methods.random import random_search
+from pyrameter.methods.random import random_search
 
 
 def pso(space):
