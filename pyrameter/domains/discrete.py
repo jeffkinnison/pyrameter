@@ -78,8 +78,14 @@ class DiscreteDomain(Domain):
         else:
             random_state = obj['random_state']
             del obj['random_state']
+
+        try:
+            callback = dill.loads(obj['callback'])
+        except KeyError:
+            callback = None
+        
         domain = cls(obj['name'], obj['domain'],
-                     callback=dill.loads(obj['callback']), seed=random_state)
+                     callback=callback, seed=random_state)
         return domain
 
     def generate(self):
@@ -117,6 +123,7 @@ class DiscreteDomain(Domain):
         jsonified.update({
             'domain': list(self.domain)
         })
+        jsonified.update({'callback': dill.loads(self.callback)})
         if isinstance(self.random_state, np.random.RandomState):
             rs = self.random_state.get_state()
             jsonified.update({

@@ -98,8 +98,14 @@ class ContinuousDomain(Domain):
         else:
             random_state = obj['domain_kwargs']['random_state']
             del obj['domain_kwargs']['random_state']
+
+        try:
+            callback = dill.loads(obj['callback'])
+        except KeyError:
+            callback = None
+
         domain = cls(obj['name'], obj['domain'], *obj['domain_args'],
-                     dill.loads(obj['callback']), seed=random_state,
+                     callback=callback, seed=random_state,
                      **obj['domain_kwargs'])
         return domain
 
@@ -142,6 +148,8 @@ class ContinuousDomain(Domain):
             'domain_args': self.domain_args,
             'domain_kwargs': {}
         })
+
+        jsonified.update({'callback': dill.dumps(self.callback)})
 
         for key, val in self.domain_kwargs.items():
             if key == 'random_state' and isinstance(val, np.random.RandomState):
