@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='pyrameter',
-    version='0.2.0.post2',
+    version='0.2.0.post6',
     description='Structure, sample, and savor hyperparameter searches',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -23,10 +23,9 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Topic :: Scientific/Engineering :: Artificial Intelligence',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Operating System :: POSIX',
         'Operating System :: Unix',
     ],
