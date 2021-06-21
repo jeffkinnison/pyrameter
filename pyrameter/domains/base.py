@@ -170,5 +170,9 @@ class Domain(object, metaclass=MetaDomain):
         # and class name for dynamic imports.
         classname = re.match(r"^<class '(.+)'>$",
                              str(self.__class__)).groups()[0]
-        return {'name': self.name,
-                'type': classname}
+        return {
+            'id': self.id,
+            'name': self.name,
+            'current': self.current,
+            'type': classname
+        }

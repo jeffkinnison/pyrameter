@@ -44,6 +44,10 @@ class ExhaustiveDomain(Domain):
     def from_json(cls, obj):
         domain = cls(obj['name'], obj['domain'])
         domain._index = obj.get('index', 0)
+
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     @property

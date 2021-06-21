@@ -72,8 +72,12 @@ class SequenceDomain(Domain):
 
     @classmethod
     def from_json(cls, obj):
-        domain = cls(obj['name'], [Domain.from_json(d) for d in obj['domains']],
-                 callback=dill.loads(obj['callback']))
+        domain = cls(obj['name'], [Domain.from_json(d) for d in obj['domains']])
+
+        domain.id = obj['id']
+        domain.current = obj['current']
+
+        return domain
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""

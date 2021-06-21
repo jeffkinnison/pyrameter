@@ -49,6 +49,10 @@ class ConstantDomain(Domain):
             The domain encoded in ``obj``
         """
         domain = cls(obj['name'], obj['domain'])
+
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):

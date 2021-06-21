@@ -86,6 +86,10 @@ class DiscreteDomain(Domain):
         
         domain = cls(obj['name'], obj['domain'],
                      callback=callback, seed=random_state)
+        
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):
@@ -123,7 +127,7 @@ class DiscreteDomain(Domain):
         jsonified.update({
             'domain': list(self.domain)
         })
-        jsonified.update({'callback': dill.loads(self.callback)})
+        # jsonified.update({'callback': dill.loads(self.callback)})
         if isinstance(self.random_state, np.random.RandomState):
             rs = self.random_state.get_state()
             jsonified.update({

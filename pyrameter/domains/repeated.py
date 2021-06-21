@@ -94,8 +94,11 @@ class RepeatedDomain(Domain):
     @classmethod
     def from_json(cls, obj):
         domain = cls(obj['name'], Domain.from_json(obj['domain']),
-                     obj['repetitions'], split=obj['split'],
-                     callback=dill.loads(obj['callback']))
+                     obj['repetitions'], split=obj['split'])
+        
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):
