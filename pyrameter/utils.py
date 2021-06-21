@@ -6,6 +6,7 @@ CountedBase
     Base class for classes that should be counted/given a unique id.
 """
 
+import functools
 import itertools
 import json
 
@@ -54,3 +55,10 @@ class PyrameterDecoder(json.JSONDecoder):
             return arr
         else:
             return obj
+
+
+def partializer(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        return functools.partial(func, *args, **kwargs)
+    return wrapper
