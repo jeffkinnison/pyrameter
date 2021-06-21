@@ -34,7 +34,7 @@ class MongoBackend(BaseBackend):
     def __init__(self, url, database):
         self.connection = pymongo.MongoClient(url)[database]
 
-    def load(self):
+    def load(self, exp_key):
         """Load a hyperparameter search state.
 
         Returns
@@ -42,7 +42,7 @@ class MongoBackend(BaseBackend):
         searchspaces : list of `pyrameter.domains.searchspace.SearchSpace`
             The search spaces in the eperiment as of their most recent save.
         """
-        searchspaces = self.connection['searchspaces'].find()
+        searchspaces = self.connection['searchspaces'].find({'exp_key': exp_key})
         for searchspace in searchspaces:
             domains = self.connection['domains'].find(
                 {'_id': {'$in': searchspace['domains']}})

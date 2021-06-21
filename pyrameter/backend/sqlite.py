@@ -21,21 +21,26 @@ class SQLiteBackend(BaseBackend):
     """
 
     def __init__(self, database):
-        self.connection = sqlite3.connect(database)
+        self.database = database
+        connection = sqlite3.connect(database)
 
-        self.connection.execute('''
+        connection.execute('''
+            create table if not exists experiments(
+                id integer primary key,
+                exp_key varchar)''')
+        connection.execute('''
             create table if not exists searchspaces(
                 id integer primary key,
-                exp_key varchar,
+                foreign key(experiment) references experiments(id),
                 complexity real,
                 uncertainty real)''')
-        self.connection.execute('''
+        connection.execute('''
             create table if not exists domains(
                 id integer primary key,
                 foreign key(searchspace) references searchspaces(id),
                 domain text,
                 rng text)''')
-        self.connection.execute('''
+        connection.execute('''
             create table if not exists trials(
                 id integer primary key,
                 foreign key(searchspace) references searchspaces(id),
@@ -44,8 +49,14 @@ class SQLiteBackend(BaseBackend):
                 results text,
                 errmsg text)''')
 
-    def load(self):
-        pass
+    def load(self, exp_key):
+        connection = sqlite3.connect(database)
+
+        experiment = connection.execute(
+            'SELECT * from experiments WHERE exp_key=:key',
+            {'key': exp_key})
+
+        searchspaces = 
 
     def save(self, searchspaces):
         pass
