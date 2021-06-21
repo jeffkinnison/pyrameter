@@ -5,7 +5,7 @@ Classes
 CountedBase
     Base class for classes that should be counted/given a unique id.
 """
-
+import functools
 import itertools
 import json
 
@@ -54,3 +54,39 @@ class PyrameterDecoder(json.JSONDecoder):
             return arr
         else:
             return obj
+
+
+def partialize(func):
+    """Create partials with kwargs only for pass-through parameterzation.
+
+    Parameters
+    ----------
+    func : callable
+        Function to convert into a partial.
+    
+    Returns
+    -------
+    wrapper : callable
+        The wrapped ``func`` which stores any keyword args passed for
+        runtime currying.
+    
+    Notes
+    -----
+    This formulation exists to allow for default keyword args for
+    hyperparameter generation methods and pass-through parameterization.
+    This allows users to specify their generation method by name in the
+    simple case.
+
+    Examples
+    --------
+    >>> @partialize
+    ... def add(x, y=1):
+    ...     return x + y
+    >>> plus_two = add(y=2)
+    >>> plus_two(5)
+    7
+    """
+    @functools.wraps(func)
+    def wrapper(**kwargs):
+        return functools.partial(func, **kwargs)
+    return wrapper
