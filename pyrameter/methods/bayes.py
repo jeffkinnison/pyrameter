@@ -2,7 +2,7 @@
 
 Functions
 ---------
-bayes_opt
+bayes
     Spearmint-style gaussian process-based Bayesian optimization.
 """
 
@@ -15,7 +15,7 @@ from pyrameter.methods.random import random_search
 from pyrameter.trial import Trial, TrialStatus
 
 
-def bayes_opt(space, n_samples=100, warm_up=10, **gp_kws):
+def bayes(space, n_samples=100, warm_up=10, **gp_kws):
     """Spearmint-style gaussian process-based Bayesian optimization.
 
     Parameters
@@ -38,6 +38,11 @@ def bayes_opt(space, n_samples=100, warm_up=10, **gp_kws):
             # default Matern
             if 'kernel' not in gp_kws:
                 gp_kws['kernel'] = Matern()
+
+            if 'n_samples' in gp_kws:
+                del gp_kws['n_samples']
+            if 'warm_up' in gp_kws:
+                del gp_kws['warm_up']
 
             # Set up and train the Gaussian process regressor
             gp = GaussianProcessRegressor(**gp_kws)
