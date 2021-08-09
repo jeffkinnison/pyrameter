@@ -14,7 +14,7 @@ from pyrameter.methods.random import random_search
 from pyrameter.trial import Trial, TrialStatus
 
 
-def smac(space, n_samples=100, warm_up=10, **gp_kws):
+def smac(space, n_samples=100, warm_up=10, **rf_kws):
     """SMAC-style random forest bayesian optimization.
 
     Parameters
@@ -29,37 +29,39 @@ def smac(space, n_samples=100, warm_up=10, **gp_kws):
     else:
         # Put the space's evaluated hyperparameters and result into arrays.
         data = space.to_array()
-        features, losses = data[:, :-1], data[:, -1].reshape(-1, 1)
+        features, losses = data[:, :-1], data[:, -1].ravel()
         params = []
 
         for j in range(len(space.domains)):
             # Set up and train the Gaussian process regressor
-            rf = RandomForestRegressor(**gp_kws)
+            rf = RandomForestRegressor(**rf_kws)
             rf.fit(features[:, j].reshape(-1, 1), losses)
 
             # Generate a number of candidate hyperparameter values.
-            potential_params = np.zeros((n_samples, 1))
+            potential_params = np.zeros((n_samples, 1), dtype=np.float64)
             for i in range(n_samples):
                 potential_params[i] += space.domains[j].generate()
 
             # Compute the expected improvement of each candidate as a function of
             # the best-observed performance and the expectation and variance of the
             # predicted scores.
-            preds = [t.predict(potential_params) for t in rf.estimators_]
-            mu = np.mean(preds)
-            sigma = np.mean(preds)
+            preds = np.log(np.stack([t.predict(potential_params) for t in rf.estimators_], axis=0).T)
+
+            mu = np.mean(preds, axis=1).ravel()
+            sigma = np.var(preds, axis=1).ravel()
             best = np.min(losses)
-            with np.errstate(divide='ignore'):
-                gamma = (mu - best) / sigma
-            ei = (mu - gamma) * scipy.stats.norm.cdf(gamma) + \
-                sigma * scipy.stats.norm.pdf(gamma)
-            ei[sigma == 0] = 0  # sigma == 0 leads to NaNs in ei; handle it here
+
+            v = (np.log(best) - mu) / np.sqrt(sigma)
+            left = (best * scipy.stats.norm.cdf(v))
+            right = np.exp((0.5 * sigma) + mu) * scipy.stats.norm.cdf(v - np.sqrt(sigma))
+            ei = left - right
 
             # Return the candidate with the best expected improvement
-            params.append(potential_params[np.argmax(ei, axis=1)[0]])
+            best_param = potential_params[np.argmax(ei, axis=0), 0]
+            print(best_param)
 
             domain = space.domains[j]
-            params.append(domain.map_to_domain(float(params[j]), bound=True))
-            domain.current = params[-1]
+            params.append(domain.map_to_domain(best_param, bound=True))
+            domain.current = best_param
 
     return params

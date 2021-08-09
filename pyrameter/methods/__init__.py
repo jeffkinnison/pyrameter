@@ -1,5 +1,5 @@
 from .bayes import bayes
-from .pso import pso
+from .pso import PSO as pso
 from .random import random_search as random
 from .smac import smac
 from .tpe import tpe
