@@ -5,7 +5,9 @@ Classes
 FMin
     Minimize an objective function to optimize a set of hyperparameters.
 """
+import itertools
 import pprint
+from types import GeneratorType
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,12 +15,14 @@ import scipy.stats
 
 from pyrameter.backend import *
 from pyrameter.domains.base import Domain
+from pyrameter.domains.continuous import ContinuousDomain
+from pyrameter.domains.discrete import DiscreteDomain
 from pyrameter.domains.exhaustive import ExhaustiveDomain
 from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
-from pyrameter.searchspace import SearchSpace, GridSearchSpace
+from pyrameter.searchspace import SearchSpace, GridSearchSpace, PopulationSearchSpace
 from pyrameter.specification import Specification
-from pyrameter.trial import TrialStatus
+from pyrameter.trial import Trial, TrialStatus
 
 
 class FMin(object):
@@ -57,10 +61,19 @@ class FMin(object):
                 spec = Specification('', domain=spec)
 
         self.spec = spec
-        self.searchspaces = [SearchSpace(ss, exp_key=exp_key)
-                                if not all([isinstance(d, ExhaustiveDomain) for d in ss])
-                                else GridSearchSpace(ss, exp_key=exp_key)
-                                for ss in self.spec.split()]
+        domainsets = self.spec.split()
+        if method == 'pso' or method is pyrameter.methods.pso:
+            if any(map(lambda x: isinstance(x, ExhaustiveDomain), itertools.chain.from_iterable(domainsets))):
+                raise ValueError(
+                    'ExhaustiveDomain provided to a poulation-based optimizer.'
+                    + 'Please reformat this as a DiscreteDomain and re-run.')
+            self.searchspaces = [PopulationSearchSpace(d, exp_key=self.exp_key) for d in domainsets]
+        else:
+            self.searchspaces = [SearchSpace(d, exp_key=self.exp_key)
+                                 if not any(map(lambda x: isinstance(x, ExhaustiveDomain), d))
+                                 else GridSearchSpace(d, exp_key=self.exp_key)
+                                 for d in domainsets]
+
         self.trials = {}
         self.active = [ss for ss in self.searchspaces]
 
@@ -85,6 +98,10 @@ class FMin(object):
                 self.method = getattr(pyrameter.methods, method)
             except AttributeError:
                 self.method = pyrameter.methods.random
+
+        if self.method is pyrameter.methods.pso:
+            self.method = self.method()
+
 
     def copy(self):
         return FMin(self.exp_key, self.spec, self.method, self.backend)
@@ -117,30 +134,34 @@ class FMin(object):
             probs /= probs.sum()
             idx = np.random.choice(np.arange(len(self.active)), p=probs)
 
-            while idx < len(self.active) and self.active[idx].done:
+            while idx < len(self.active) and self.active[idx].done(self.max_evals):
                 idx += 1
 
             try:
                 ss = self.active[idx]
-                if not ss.done:
+                if not ss.done(self.max_evals):
                     trial = ss(method=self.method)
                 else:
                     trial = None
             except IndexError:
                 ss = None
                 trial = None
+                raise
         else:
             ss = [ss for ss in self.active if ss.id == ssid][0]
 
-            if not ss.done:
+            if not ss.done(self.max_evals):
                 trial = ss(method=self.method)
             else:
                 trial = None
 
         if trial is not None:
-            self.trials[trial.id] = trial
-        if ss and len(ss.trials) >= self.max_evals:
-            ss.done = True
+            if isinstance(trial, Trial):
+                self.trials[trial.id] = trial
+            else:
+                for t in trial:
+                    self.trials[t.id] = t
+
         return trial
 
     def load(self):
@@ -213,12 +234,8 @@ class FMin(object):
                 self.trials[trial.id] = trial
             trial.submissions += 1
 
-            if ss.complexity == 1:
-                n_done = sum([1 for t in ss.trials
-                              if t.status.value == 3])
-                if n_done > self.max_evals:
-                    ss.done = True
-                    self.active.remove(ss)
+            if ss.done(self.max_evals):
+                self.active.remove(ss)
         else:
             hyperparameters = []
             for i, tid in enumerate(trial_id):
@@ -231,12 +248,8 @@ class FMin(object):
                     self.trials[trial.id] = trial
                 trial.submissions += 1
 
-                if ss.complexity == 1:
-                    n_done = sum([1 for t in ss.trials
-                                  if t.status.value == 3])
-                    if n_done > self.max_evals:
-                        ss.done = True
-                        self.active.remove(ss)
+                if ss.done(self.max_evals):
+                    self.active.remove(ss)
 
         return trial.submissions, hyperparameters
 

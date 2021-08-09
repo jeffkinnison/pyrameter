@@ -12,6 +12,7 @@ import itertools
 from multiprocessing.pool import ThreadPool
 import operator
 import os
+from typing import Iterable
 import warnings
 
 import numpy as np
@@ -61,9 +62,6 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
                         d1.domain = d2 
         self.domains.sort()
 
-
-        self.done = False
-
     def __call__(self, method=None, to_dict=False):
         """Generate a new trial for this search space.
 
@@ -112,6 +110,10 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
                 map(lambda d: d.complexity, self.domains),
                 1.0)
         return self._complexity
+
+    def done(self, max_evals):
+        complete = sum([1 if t.status == TrialStatus.DONE else 0 for t in self.trials])
+        return complete >= max_evals
 
     @classmethod
     def from_json(cls, obj):
@@ -191,7 +193,10 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             for i, result in enumerate(completed):
                 vec = [float(self.domains[j].map_to_domain(result.hyperparameters[j]))
                     for j in range(len(self.domains))]
-                vec.append(result.objective)
+                if isinstance(result.objective, Iterable):
+                    vec.extend(result.objective)
+                else:
+                    vec.append(result.objective)
                 out[i] += np.asarray(vec)
         else:
             out = None
@@ -230,14 +235,13 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         df = pd.DataFrame.from_dict(df_dict)
         return df
 
-            
-
     def to_json(self, simplify=False):
         """Convert this search space to a JSON-compatible representation."""
         jsonified = {
             'exp_key': self.exp_key,
             'complexity': self._complexity,
-            'uncertainty': self._uncertainty
+            'uncertainty': self._uncertainty,
+            'done': self.done
         }
 
         if not simplify:
@@ -325,11 +329,11 @@ class PopulationSearchSpace(SearchSpace):
     
     """
 
-    def __init__(self, domains, population_size=50, exp_key=''):
+    def __init__(self, domains, exp_key=''):
         super().__init__(domains, exp_key=exp_key)
-        self.population_size = population_size
-        self.population = []
+        self.population = None
         self.best = None
+        self.generations = 0
 
     def __call__(self, method=None, to_dict=False):
         """Generate a new trial for this search space.
@@ -352,4 +356,26 @@ class PopulationSearchSpace(SearchSpace):
         self.population = method(self)
         trials = [Trial(self, hyperparameters=h) for h in self.population]
         self.trials.extend(trials)
+        self.generations += 1
         return [t.parameter_dict for t in trials] if to_dict else trials
+
+    def done(self, max_evals):
+        return self.generations >= max_evals
+
+    def population_to_array(self):
+        if self.population is not None:
+            out = np.zeros((len(self.population), len(self.domains) + 1),
+                           dtype=np.float32)
+
+            for i, result in enumerate(self.trials[-len(self.population):]):
+                vec = [float(self.domains[j].map_to_domain(result.hyperparameters[j]))
+                       for j in range(len(self.domains))]
+                if isinstance(result.objective, Iterable):
+                    vec.extend(result.objective)
+                else:
+                    vec.append(result.objective)
+                out[i] += np.asarray(vec)
+
+            return out
+        else:
+            return None
