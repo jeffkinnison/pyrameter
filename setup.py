@@ -6,7 +6,7 @@ with open('README.md', 'r') as f:
 
 setup(
     name='pyrameter',
-    version='0.2.0.post8',
+    version='0.2.1',
     description='Structure, sample, and savor hyperparameter searches',
     long_description=long_description,
     long_description_content_type='text/markdown',
