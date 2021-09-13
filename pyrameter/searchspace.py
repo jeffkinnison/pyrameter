@@ -47,6 +47,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         self.id = next(self.__class__._counter)
         self.exp_key = exp_key
         self.trials = []
+        self.ready = True
 
         self._complexity = None
         self._uncertainty = None
@@ -241,7 +242,6 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             'exp_key': self.exp_key,
             'complexity': self._complexity,
             'uncertainty': self._uncertainty,
-            'done': self.done
         }
 
         if not simplify:
@@ -351,13 +351,19 @@ class PopulationSearchSpace(SearchSpace):
             nested dictionary of hyperparameter values matching the structure
             of the original specification.
         """
-        if method is None:
-            method = random_search
-        self.population = method(self)
-        trials = [Trial(self, hyperparameters=h) for h in self.population]
-        self.trials.extend(trials)
-        self.generations += 1
-        return [t.parameter_dict for t in trials] if to_dict else trials
+        print(self.population)
+        self.ready = self.population is None or all([t.objective is not None for t in self.population])
+
+        if self.ready:
+            if method is None:
+                method = random_search
+            population = method(self)
+            self.population = [Trial(self, hyperparameters=h) for h in population]
+            self.trials.extend(self.population)
+            self.generations += 1
+            return [t.parameter_dict for t in self.poulation] if to_dict else self.population
+        else:
+            return []
 
     def done(self, max_evals):
         return self.generations >= max_evals
