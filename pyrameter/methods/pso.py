@@ -2,10 +2,11 @@ from pyrameter.domains.continuous import ContinuousDomain
 import numpy as np
 from scipy.stats import uniform
 
+from pyrameter.methods.method import Method
 from pyrameter.methods.random import random_search
 
 
-class PSO(object):
+class PSO(Method):
     """Particle swarm optimization with persistent state.
 
     Arguments
