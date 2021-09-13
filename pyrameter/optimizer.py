@@ -98,6 +98,7 @@ class FMin(object):
                 self.method = getattr(pyrameter.methods, method)
             except AttributeError:
                 self.method = pyrameter.methods.random
+                raise UserWarning(f'Unknown optimization method {method}. Falling back to random search.')
 
         if self.method is pyrameter.methods.pso:
             self.method = self.method()
@@ -125,42 +126,45 @@ class FMin(object):
             Raised when ``ssid`` is provided and does not map to a search space
             being optimized.
         """
-        if ssid is None:
-            if self._did_sort:
-                probs = scipy.stats.planck.pmf(
-                    range(len(self.active)), 0.5)
+        trial = None
+
+        if len(self.active) > 0:
+            if ssid is None:
+                if self._did_sort:
+                    probs = scipy.stats.planck.pmf(
+                        range(len(self.active)), 0.5)
+                else:
+                    probs = np.ones(len(self.active))
+                probs /= probs.sum()
+                idx = np.random.choice(np.arange(len(self.active)), p=probs)
+
+                while idx < len(self.active) and self.active[idx].done(self.max_evals):
+                    idx += 1
+
+                try:
+                    ss = self.active[idx]
+                    if not ss.done(self.max_evals):
+                        trial = ss(method=self.method)
+                    else:
+                        trial = None
+                except IndexError:
+                    ss = None
+                    trial = None
+                    raise
             else:
-                probs = np.ones(len(self.active))
-            probs /= probs.sum()
-            idx = np.random.choice(np.arange(len(self.active)), p=probs)
+                ss = [ss for ss in self.active if ss.id == ssid][0]
 
-            while idx < len(self.active) and self.active[idx].done(self.max_evals):
-                idx += 1
-
-            try:
-                ss = self.active[idx]
                 if not ss.done(self.max_evals):
                     trial = ss(method=self.method)
                 else:
                     trial = None
-            except IndexError:
-                ss = None
-                trial = None
-                raise
-        else:
-            ss = [ss for ss in self.active if ss.id == ssid][0]
 
-            if not ss.done(self.max_evals):
-                trial = ss(method=self.method)
-            else:
-                trial = None
-
-        if trial is not None:
-            if isinstance(trial, Trial):
-                self.trials[trial.id] = trial
-            else:
-                for t in trial:
-                    self.trials[t.id] = t
+            if trial is not None:
+                if isinstance(trial, Trial):
+                    self.trials[trial.id] = trial
+                else:
+                    for t in trial:
+                        self.trials[t.id] = t
 
         return trial
 
@@ -234,7 +238,7 @@ class FMin(object):
                 self.trials[trial.id] = trial
             trial.submissions += 1
 
-            if ss.done(self.max_evals):
+            if ss in self.active and ss.done(self.max_evals):
                 self.active.remove(ss)
         else:
             hyperparameters = []
