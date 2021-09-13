@@ -58,7 +58,6 @@ def smac(space, n_samples=100, warm_up=10, **rf_kws):
 
             # Return the candidate with the best expected improvement
             best_param = potential_params[np.argmax(ei, axis=0), 0]
-            print(best_param)
 
             domain = space.domains[j]
             params.append(domain.map_to_domain(best_param, bound=True))
