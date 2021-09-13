@@ -8,6 +8,7 @@ CountedBase
 import functools
 import itertools
 import json
+import re
 
 import numpy as np
 
@@ -29,16 +30,11 @@ class CountedBase(object):
 
 class PyrameterEncoder(json.JSONEncoder):
     def default(self, obj):
-        if isinstance(obj, np.ndarray) and obj.ndim > 0:
+        if isinstance(obj, (np.ndarray, np.generic)):
             return {
-                '__data': list(obj.ravel()),
-                '__dtype': str(obj.dtype),
-                '__shape': obj.shape
+                '__data': obj.tolist(),
+                '__dtype': str(obj.dtype)
             }
-        elif isinstance(obj, np.floating):
-            return float(obj)
-        elif isinstance(obj, (np.integer, np.unsignedinteger)):
-            return int(obj)
         else:
             return super(PyrameterEncoder, self).default(obj)
 
@@ -49,8 +45,8 @@ class PyrameterDecoder(json.JSONDecoder):
             *args, object_hook=self.object_hook, **kwargs)
 
     def object_hook(self, obj):
-        if isinstance(obj, dict) and sorted(obj.keys()) == ['__data', '__dtype', '__shape']:
-            arr = np.array(obj['__data']).astype(obj['__dtype']).reshape(obj['__shape'])
+        if isinstance(obj, dict) and sorted(obj.keys()) == ['__data', '__dtype']:
+            arr = np.array(obj['__data']).astype(obj['__dtype'])
             return arr
         else:
             return obj
