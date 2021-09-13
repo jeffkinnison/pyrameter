@@ -56,7 +56,14 @@ class SQLiteBackend(BaseBackend):
             'SELECT * from experiments WHERE exp_key=:key',
             {'key': exp_key})
 
-        searchspaces = 
+        searchspaces = connection.execute(
+            'SELECT * from searchspaces WHERE experiment=:expid}',
+            {'expid': experiment.id}
+        )
+
+        for searchspace in searchspaces:
+            
+
 
     def save(self, searchspaces):
         pass
