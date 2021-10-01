@@ -33,7 +33,7 @@ class PyrameterEncoder(json.JSONEncoder):
         if isinstance(obj, (np.ndarray, np.generic)):
             return {
                 '__data': obj.tolist(),
-                '__dtype': str(obj.dtype)
+                '__dtype': str(obj.dtype),
             }
         else:
             return super(PyrameterEncoder, self).default(obj)
@@ -46,7 +46,10 @@ class PyrameterDecoder(json.JSONDecoder):
 
     def object_hook(self, obj):
         if isinstance(obj, dict) and sorted(obj.keys()) == ['__data', '__dtype']:
-            arr = np.array(obj['__data']).astype(obj['__dtype'])
+            if isinstance(obj['__data'], list):
+                arr = np.array(obj['__data']).astype(obj['__dtype'])
+            else:
+                arr = np.dtype(obj['__dtype']).type(obj['__data'])
             return arr
         else:
             return obj
