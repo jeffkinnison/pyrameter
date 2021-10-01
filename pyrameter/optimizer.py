@@ -7,6 +7,7 @@ FMin
 """
 import itertools
 import pprint
+from re import search
 from types import GeneratorType
 
 import matplotlib.pyplot as plt
@@ -20,6 +21,7 @@ from pyrameter.domains.discrete import DiscreteDomain
 from pyrameter.domains.exhaustive import ExhaustiveDomain
 from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
+from pyrameter.methods.method import Method, PopulationMethod
 from pyrameter.searchspace import SearchSpace, GridSearchSpace, PopulationSearchSpace
 from pyrameter.specification import Specification
 from pyrameter.trial import Trial, TrialStatus
@@ -62,10 +64,20 @@ class FMin(object):
 
         self.spec = spec
         domainsets = self.spec.split()
-        if method == 'pso' or method is pyrameter.methods.pso:
+
+        if callable(method):
+            self.method = method
+        else:
+            try:
+                self.method = getattr(pyrameter.methods, method)()
+            except AttributeError:
+                self.method = pyrameter.methods.random()
+                raise UserWarning(f'Unknown optimization method {method}. Falling back to random search.')
+
+        if isinstance(self.method, PopulationMethod) or self.method == 'surrogate_p1' or self.method == 'surrogate_p2':
             if any(map(lambda x: isinstance(x, ExhaustiveDomain), itertools.chain.from_iterable(domainsets))):
                 raise ValueError(
-                    'ExhaustiveDomain provided to a poulation-based optimizer.'
+                    'ExhaustiveDomain provided to a population-based optimizer.'
                     + 'Please reformat this as a DiscreteDomain and re-run.')
             self.searchspaces = [PopulationSearchSpace(d, exp_key=self.exp_key) for d in domainsets]
         else:
@@ -91,29 +103,28 @@ class FMin(object):
 
         self._did_sort = False
 
-        if callable(method):
-            self.method = method
-        else:
-            try:
-                self.method = getattr(pyrameter.methods, method)
-            except AttributeError:
-                self.method = pyrameter.methods.random
-                raise UserWarning(f'Unknown optimization method {method}. Falling back to random search.')
+    def copy(self, alias_searchspaces=False):
+        opt = FMin(self.exp_key, self.spec, self.method, self.backend, max_evals=self.max_evals)
+        
+        if alias_searchspaces:
+            opt.searchspaces = self.searchspaces
+            opt.trials = self.trials
+            opt.active = self.active
+        
+        return opt
 
-        if self.method is pyrameter.methods.pso:
-            self.method = self.method()
-
-
-    def copy(self):
-        return FMin(self.exp_key, self.spec, self.method, self.backend)
-
-    def generate(self, ssid=None):
+    def generate(self, ssid=None, searchspaces=None):
         """Generate a set of hyperparameters from a search space.
 
         Parameters
         ----------
         ssid
             The id of the search space to generate from.
+        searchspaces : list, optional
+            The set of search spaces to consider for generation. Intended
+            to address more complex needs external to the optimizer. If not
+            provided, values are generated from search spaces in
+            ``self.active``.
 
         Returns
         -------
@@ -128,36 +139,30 @@ class FMin(object):
         """
         trial = None
 
-        if len(self.active) > 0:
+        if searchspaces is None:
+            searchspaces = self.active
+
+        if len(searchspaces) > 0:
             if ssid is None:
+                n_spaces = len(searchspaces)
                 if self._did_sort:
                     probs = scipy.stats.planck.pmf(
-                        range(len(self.active)), 0.5)
+                        range(n_spaces), 0.5)
                 else:
-                    probs = np.ones(len(self.active))
+                    probs = np.ones(n_spaces)
                 probs /= probs.sum()
-                idx = np.random.choice(np.arange(len(self.active)), p=probs)
-
-                while idx < len(self.active) and self.active[idx].done(self.max_evals):
-                    idx += 1
+                idx = np.random.choice(np.arange(n_spaces), p=probs)
 
                 try:
-                    ss = self.active[idx]
-                    if not ss.done(self.max_evals):
-                        trial = ss(method=self.method)
-                    else:
-                        trial = None
+                    ss = searchspaces[idx]
+                    trial = ss(method=self.method)
                 except IndexError:
                     ss = None
                     trial = None
                     raise
             else:
-                ss = [ss for ss in self.active if ss.id == ssid][0]
-
-                if not ss.done(self.max_evals):
-                    trial = ss(method=self.method)
-                else:
-                    trial = None
+                ss = [ss for ss in searchspaces if ss.id == ssid][0]
+                trial = ss(method=self.method)
 
             if trial is not None:
                 if isinstance(trial, Trial):
