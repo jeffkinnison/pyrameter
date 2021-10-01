@@ -70,7 +70,7 @@ class DiscreteDomain(Domain):
     @classmethod
     def from_json(cls, obj):
         if 'random_state' in obj:
-            rng = obj['domain_kwargs']['random_state']
+            rng = obj['random_state']
             random_state = np.random.RandomState()
             random_state.set_state((rng[0], np.array(rng[1], dtype=np.uint32),
                                     rng[2], rng[3], rng[4]))
@@ -127,11 +127,10 @@ class DiscreteDomain(Domain):
         jsonified.update({
             'domain': list(self.domain)
         })
-        # jsonified.update({'callback': dill.loads(self.callback)})
         if isinstance(self.random_state, np.random.RandomState):
             rs = self.random_state.get_state()
             jsonified.update({
-                'random_state': [rs[0], list(rs[1]), rs[2], rs[3], rs[4]]
+                'random_state': rs
             })
         else:
             jsonified.update({'random_state': self.random_state})

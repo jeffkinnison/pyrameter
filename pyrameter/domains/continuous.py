@@ -128,16 +128,6 @@ class ContinuousDomain(Domain):
             self.domain.rvs(*self.domain_args, **self.domain_kwargs))
 
     def map_to_domain(self, value, bound=False):
-        if bound:
-            try:
-                pdf_kwargs = {k: v for k, v in self.domain_kwargs.items()
-                              if k != 'random_state'}
-                prob = self.domain.pdf(
-                    value, *self.domain_args, **pdf_kwargs)
-                if prob == 0:
-                    value = None
-            except ValueError:
-                value = None
         return value
 
     def to_index(self, value, bound=False):
@@ -162,12 +152,11 @@ class ContinuousDomain(Domain):
             'domain_kwargs': {}
         })
 
-        # jsonified.update({'callback': dill.dumps(self.callback)})
-
         for key, val in self.domain_kwargs.items():
             if key == 'random_state' and isinstance(val, np.random.RandomState):
-                val = list(val.get_state())
-                val[1] = list(val[1])
-            jsonified['domain_kwargs'][key] = val
+                rs = val.get_state()
+                jsonified['domain_kwargs'].update({'random_state': rs})
+            else:
+                jsonified['domain_kwargs'][key] = val
 
         return jsonified
