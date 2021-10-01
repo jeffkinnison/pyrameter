@@ -130,6 +130,7 @@ class Trial(object, metaclass=TrialMeta):
                     objective=obj['objective'],
                     errmsg=obj['errmsg'])
         trial.dirty = False
+        trial.id = obj['id']
         return trial
 
     @property
@@ -200,6 +201,7 @@ class Trial(object, metaclass=TrialMeta):
     def to_json(self):
         """Convert this trial to a JSON-compatible representation."""
         return dict(
+            id=self.id,
             searchspace=self.searchspace.id
                         if hasattr(self.searchspace, 'id')
                         else self.searchspace,
