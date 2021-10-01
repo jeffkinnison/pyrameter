@@ -22,7 +22,7 @@ from sklearn.gaussian_process.kernels import RBF
 
 from pyrameter.domains.base import Domain
 from pyrameter.domains.linked import DependentDomain
-from pyrameter.methods.random import random_search
+from pyrameter.methods.random import RandomSearch
 from pyrameter.trial import Trial, TrialStatus
 
 
@@ -80,8 +80,10 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             of the original specification.
         """
         if method is None:
-            method = random_search
+            method = RandomSearch()
+
         hyperparameters = method(self)
+
         for i, d in enumerate(self.domains):
             d.current = hyperparameters[i]
         trial = Trial(self, hyperparameters=hyperparameters)
@@ -133,16 +135,15 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         searchspace = cls(domains, exp_key=obj['exp_key'])
         trials = []
         for t in obj['trials']:
-            trial = Trial(searchspace,
-                          hyperparameters=t['hyperparameters'],
-                          results=t['results'],
-                          objective=t['objective'],
-                          errmsg=t['errmsg'])
+            t['searchspace'] = searchspace
+            trial = Trial.from_json(t)
             trial.dirty = False
             trials.append(trial)
         searchspace.trials = trials
         searchspace._complexity = obj['complexity']
         searchspace._uncertainty = obj['uncertainty']
+        print(obj)
+        searchspace.id = obj['id']
         return searchspace
 
     def generate(self):
@@ -239,6 +240,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
     def to_json(self, simplify=False):
         """Convert this search space to a JSON-compatible representation."""
         jsonified = {
+            'id': self.id,
             'exp_key': self.exp_key,
             'complexity': self._complexity,
             'uncertainty': self._uncertainty,
@@ -351,17 +353,18 @@ class PopulationSearchSpace(SearchSpace):
             nested dictionary of hyperparameter values matching the structure
             of the original specification.
         """
-        print(self.population)
         self.ready = self.population is None or all([t.objective is not None for t in self.population])
 
         if self.ready:
             if method is None:
-                method = random_search
+                method = RandomSearch()
             population = method(self)
+            if not isinstance(population, list) or isinstance(population, np.ndarray) and population.ndim == 1:
+                population = [population]
             self.population = [Trial(self, hyperparameters=h) for h in population]
             self.trials.extend(self.population)
             self.generations += 1
-            return [t.parameter_dict for t in self.poulation] if to_dict else self.population
+            return [t.parameter_dict for t in self.population] if to_dict else self.population
         else:
             return []
 
