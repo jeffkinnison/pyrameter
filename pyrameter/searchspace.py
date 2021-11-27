@@ -64,7 +64,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         self.domains.sort()
 
     def __call__(self, method=None, to_dict=False):
-        """Generate a new trial for this search space.
+        """Generate a new trial for this search space if ready.
 
         Parameters
         ----------
@@ -73,22 +73,32 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
 
         Returns
         -------
-        trial : ``pyrameter.trial.Trial`` or dict
+        trial : ``pyrameter.trial.Trial`` or dict or None
             Trial data, including hyperparameter values and metadata for a
             database. If ``to_dict`` is ``True``, instead return only the
             nested dictionary of hyperparameter values matching the structure
-            of the original specification.
+            of the original specification. If ``None`` is returned, then the
+            space requires more in-progress trials to return before
+            more hyperparameters may be generated. This last case is to
+            ensure proper warm-up sampling for model-based methods.
         """
         if method is None:
             method = RandomSearch()
 
-        hyperparameters = method(self)
+        completed = sum([1 if t.objective is not None else 0
+                         for t in self.trials])
+        n_trials = len(self.trials)
+        self.ready = n_trials < method.warm_up or completed >= method.warm_up
 
-        for i, d in enumerate(self.domains):
-            d.current = hyperparameters[i]
-        trial = Trial(self, hyperparameters=hyperparameters)
-        self.trials.append(trial)
-        return trial.parameter_dict if to_dict else trial
+        if self.ready:
+            hyperparameters = method(self)
+            for i, d in enumerate(self.domains):
+                d.current = hyperparameters[i]
+            trial = Trial(self, hyperparameters=hyperparameters)
+            self.trials.append(trial)
+            return trial.parameter_dict if to_dict else trial
+        else:
+            return None
 
     def __eq__(self, other):
         return len(self.domains) == len(other.domains) and \

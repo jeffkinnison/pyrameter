@@ -36,7 +36,7 @@ class PSO(PopulationMethod):
     fmin : float
         Global best objective value over all generations.
     omega : float
-        Velocity scaling at each update.
+        Velocity scaling at each update (sort of like learning rate).
     phi_p : float
         Scaling for the update based on the best observed parameter set in the
         current population.
@@ -61,23 +61,40 @@ class PSO(PopulationMethod):
         self.epsilon = epsilon
 
     def init_velocities(self, domains):
-        """Initialize veli
+        """Initialize velocities based on the 
+
+        Parameters
+        ----------
+        domains : list of pyrameter.domains.base.Domain
+            The domains from which the initial population was drawn from.
+            Velocities are initialized using the viable range of the domains.
         """
         velocities = np.zeros((len(domains), self.population_size))
+        
+        # Draw ``self.population_size`` random values from a uniform
+        # distribution bounded by the "viable range" of a domain. For
+        # categorical data, the viable range is [0, len(domain)]. For
+        # continuous data, the viable range is the interval over which
+        # 99.999% of the CDF is defined.
         for i, d in enumerate(domains):
             lo, hi = d.bounds
-            velocities[i] += uniform.rvs(loc=lo, scale=(hi - lo), size=(self.population_size,))
+            velocities[i] += uniform.rvs(loc=lo, scale=(hi - lo),
+                                         size=(self.population_size,))
         self.velocities = velocities.T
 
     def generate(self, population_data, domains):
+        # Initialize velocities if they are not.
         if self.velocities is None:
             self.init_velocities(domains)
         
+        # Prep the previous population data.
         prev_pop = population_data
         prev_fmins = prev_pop[:, -1].ravel()
         prev_pop = prev_pop[:, :-1]
 
-
+        # Get the overall best and current-generation best hyperparameter
+        # values. On first iteration, set the values up. On subsequent
+        # iterations, update the overall best as necessary.
         if self.pfmin is None:
             self.pbest = prev_pop
             self.pfmin = prev_fmins
@@ -98,10 +115,15 @@ class PSO(PopulationMethod):
                         self.gbest = prev_pop[i]
                         self.gfmin = p
 
+        # Compute the exploration (pop_term) and exploitation (gen_term)
+        # components of the update. This computes two updates based on the
+        # difference between the two best observed particles and the
+        # current population.
         r_p, r_g = uniform.rvs(loc=0, scale=1, size=(2,))
         pop_term = self.phi_p * r_p * (self.pbest - prev_pop)
         gen_term = self.phi_g * r_g * (self.gbest - prev_pop)
 
+        # Decay the velocities and update with the two terms.
         self.velocities *= self.omega
         self.velocities += (pop_term + gen_term)
         pop = prev_pop + self.velocities

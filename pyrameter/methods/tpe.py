@@ -40,7 +40,7 @@ class TPE(Method):
         The array of hyperparameter values with the highest expected
         improvement from among the candidate ``n_samples``.
     """
-    def __init__(self, best_split=0.2, n_samples=10, warm_up=100, **gmm_kws):
+    def __init__(self, best_split=0.2, n_samples=10, warm_up=50, **gmm_kws):
         super().__init__(warm_up)
 
         self.best_split = best_split
@@ -48,6 +48,26 @@ class TPE(Method):
         self.gmm_kws = gmm_kws
     
     def generate(self, trial_data, domains):
+        """Generate a set of hyperparameters.
+
+        Parameters
+        ----------
+        trial_data : array_like
+            A 2-d numpy array where each row is one completed trial
+            (hyperparameter set) and each column corresponds to one
+            hyperparameter domain (always in the same order) with the
+            objective value of the trial in the last column.
+        domains : list of pyrameter.domain.base.Domain
+            The domains from which hyperparameters were generated. These
+            are provided in the same order as the columns in ``trial_data``.
+        
+        Returns
+        -------
+        array_like
+            A 1-d list or array of new hyperparameter values with one element
+            per hyperparameter domain in the same order as the columns in
+            ``trial_data``.
+        """
         # Collect all of the evaluated hyperparameter values and their
         # associated objective function value into a feature vector.
         features, losses = trial_data[:, :-1], trial_data[:, -1]

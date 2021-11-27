@@ -16,6 +16,23 @@ from pyrameter.methods.method import Method
 
 
 class Bayesian(Method):
+    """Spearmint-style gaussian process-based Bayesian optimization.
+
+    Parameters
+    ----------
+    n_samples : int
+        The number of candidate samples to generate and score on each call.
+        Default: 10
+    warm_up : int
+        The number of randomly-generated samples to evaluate prior to running
+        Bayesian optimization. Default: 20
+    
+    Other Parameters
+    ----------------
+    gp_kws
+        Additional arguments to be passed to the Gaussian Process regressor.
+        For details, see https://scikit-learn.org/stable/modules/generated/sklearn.gaussian_process.GaussianProcessRegressor.html#sklearn.gaussian_process.GaussianProcessRegressor
+    """
     def __init__(self, n_samples=10, warm_up=20, **gp_kws):
         super().__init__(warm_up)
         self.n_samples = n_samples
@@ -28,11 +45,25 @@ class Bayesian(Method):
         self.gp_kws = gp_kws
 
     def generate(self, trial_data, domains):
-        """Spearmint-style gaussian process-based Bayesian optimization.
+        """Generate a set of hyperparameters.
 
         Parameters
         ----------
-        space : pyrameter.searchspace.SearchSpace
+        trial_data : array_like
+            A 2-d numpy array where each row is one completed trial
+            (hyperparameter set) and each column corresponds to one
+            hyperparameter domain (always in the same order) with the
+            objective value of the trial in the last column.
+        domains : list of pyrameter.domain.base.Domain
+            The domains from which hyperparameters were generated. These
+            are provided in the same order as the columns in ``trial_data``.
+        
+        Returns
+        -------
+        array_like
+            A 1-d list or array of new hyperparameter values with one element
+            per hyperparameter domain in the same order as the columns in
+            ``trial_data``.
         """
         features, losses = trial_data[-100:, :-1], trial_data[-100:, -1].reshape(-1, 1)
         params = []
@@ -68,13 +99,6 @@ class Bayesian(Method):
             gamma = (best - mu) / sigma
         ei = (mu * (gamma * scipy.stats.norm.cdf(gamma))) + scipy.stats.norm.pdf(gamma)
         ei[sigma == 0] = 0  # sigma == 0 leads to NaNs in ei; handle it here
-
-        # # Return the candidate with the best expected improvement
-        # domain = space.domains[j]
-        # param_val = potential_params[np.argmax(ei)]
-        # param_val = scaler.inverse_transform([[param_val]])[0, 0]
-        # params.append(domain.map_to_domain(float(param_val), bound=True))
-        # domain.current = params[-1]
 
         params = potential_params[np.argmax(ei)]
 

@@ -10,7 +10,6 @@ BilevelMethod
     Abstract class on which to develop bilevel optimization methods.
 """
 import copy
-import itertools
 import uuid
 
 
@@ -25,9 +24,12 @@ class Method():
         self.warm_up = warm_up
 
     def __call__(self, space):
+        # Put the hyperparameters and objective values into an array
         trial_data = space.to_array()
         completed = trial_data.shape[0] if trial_data is not None else 0
 
+        # Either randomly generate seed hyperparameters for guided methods
+        # or generate values from this method.
         if completed <= self.warm_up or completed % self.warm_up == 0:
             parameters = space.generate()
         else:
@@ -55,7 +57,7 @@ class Method():
         obj.__dict__.update(json_obj)
         return obj
 
-    def generate(self, trial_data):
+    def generate(self, trial_data, domains):
         """Generate a set of hyperparameters.
 
         Parameters
@@ -65,6 +67,9 @@ class Method():
             (hyperparameter set) and each column corresponds to one
             hyperparameter domain (always in the same order) with the
             objective value of the trial in the last column.
+        domains : list of pyrameter.domain.base.Domain
+            The domains from which hyperparameters were generated. These
+            are provided in the same order as the columns in ``trial_data``.
         
         Returns
         -------
@@ -110,8 +115,8 @@ class Method():
 class PopulationMethod(Method):
     """Abstract class on which to develop population-based optimization methods.
     
-    To create a new method, implement __init__ with custom initialization args
-    and __call__ with the signature defined here.
+    To create a new method, implement ``__init__`` with custom initialization
+    args and ``generate`` with the signature defined here.
 
     Parameters
     ----------
@@ -124,11 +129,14 @@ class PopulationMethod(Method):
         self.population_size = population_size
 
     def __call__(self, space):
+        # Get the current population. If the search space does not support
+        # populations, report this and shut down.
         try:
             current = space.population
         except AttributeError:
             raise TypeError(f'Provided search space {space} is not a PopulationSearchSpace')
 
+        # Randomly generate an initial population or update the current population.
         if space.population is None:
             new_population = [space.generate() for _ in range(self.population_size)]
         else:
@@ -137,14 +145,35 @@ class PopulationMethod(Method):
         return [self.normalize(space, p) for p in new_population]
 
     def generate(self, population_data, domains):
+        """Generate a set of hyperparameters.
+
+        Parameters
+        ----------
+        population_data : array_like
+            A 2-d numpy array where each row is one completed trial
+            (hyperparameter set) in the current population and each
+            column corresponds to one hyperparameter domain (always
+            in the same order) with the objective value of the trial
+            in the last column.
+        domains : list of pyrameter.domain.base.Domain
+            The domains from which hyperparameters were generated. These
+            are provided in the same order as the columns in ``trial_data``.
+        
+        Returns
+        -------
+        array_like
+            A 1-d list or array of new hyperparameter values with one element
+            per hyperparameter domain in the same order as the columns in
+            ``trial_data``.
+        """
         raise NotImplementedError
 
 
 class BilevelMethod(Method):
     """Abstract class on which to develop bilevel optimization methods.
 
-    To create a new method, implement __init__ with custom initialization args
-    and __call__ with the signature defined here.
+    To create a new method, implement ``__init__`` with custom initialization
+    args and ``generate`` with the signature defined here.
     """
     def __init__(self, inner_method):
         super.__init__()
