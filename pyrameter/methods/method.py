@@ -177,6 +177,8 @@ class BilevelMethod(Method):
     """
     def __init__(self, inner_method):
         super.__init__()
+        if issubclass(inner_method, Method):
+            inner_method = inner_method()
         if not isinstance(inner_method, Method) or not callable(inner_method):
             raise ValueError(f'Provided inner method {inner_method} is not a subclass of pyrameter.methods.Method or valid callable.')
         self.inner_method = inner_method
