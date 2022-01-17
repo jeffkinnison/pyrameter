@@ -83,6 +83,9 @@ class SequenceDomain(Domain):
         """Generate a hyperparameter value from this domain."""
         return tuple([self.callback(d.generate()) for d in self.domain])
 
+    def map_to_domain(self, index, bound=True):
+        pass
+
     def to_index(self, value):
         """Convert a value to its index in the domain."""
         try:

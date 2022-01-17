@@ -46,10 +46,10 @@ class JointDomain(Domain):
     def generate(self):
         return {key: val.generate() for key, val in self.domains.items()}
 
-    def map_to_domain(self):
+    def map_to_domain(self, idx, bound=True):
         pass
 
-    def to_index(self):
+    def to_index(self, value):
         pass
 
     def to_json(self):

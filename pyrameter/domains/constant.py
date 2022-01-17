@@ -59,7 +59,7 @@ class ConstantDomain(Domain):
         """Generate a hyperparameter value from this domain."""
         return self.domain
 
-    def map_to_domain(self, idx):
+    def map_to_domain(self, idx, bound=True):
         """Convert an index to its value within the domain.
 
         This domain has a single value, so returns that value.

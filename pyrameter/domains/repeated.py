@@ -105,6 +105,9 @@ class RepeatedDomain(Domain):
         """Generate a hyperparameter value from this domain."""
         return tuple([self.callback(d.generate()) for d in self.domain])
 
+    def map_to_domain(self, index, bound=True):
+        pass
+
     def split(self):
         if self.should_split:
             return [RepeatedDomain(self.name, self.domain[0], i) for i in range(1, self.repetitions)]
