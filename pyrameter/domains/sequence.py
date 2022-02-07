@@ -3,7 +3,7 @@
 Classes
 -------
 SequenceDomain
-    Multiple hyperparameter domains grouped together.
+    Multiple ordered hyperparameter domains.
 """
 
 import dill
