@@ -48,6 +48,7 @@ class PSO(PopulationMethod):
     epsilon : float
     """
     def __init__(self, population_size=50, omega=0.5, phi_p=0.5, phi_g=0.5, delta=0.0001, epsilon=0.0001):
+        super().__init__(population_size=population_size)
         self.population_size = population_size
         self.velocities = None
         self.pbest = None
