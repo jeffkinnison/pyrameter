@@ -378,9 +378,6 @@ class PopulationSearchSpace(SearchSpace):
         else:
             return []
 
-    def done(self, max_evals):
-        return self.generations >= max_evals
-
     def population_to_array(self):
         if self.population is not None:
             out = np.zeros((len(self.population), len(self.domains) + 1),
