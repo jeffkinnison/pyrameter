@@ -22,7 +22,7 @@ from sklearn.gaussian_process.kernels import RBF
 
 from pyrameter.domains.base import Domain
 from pyrameter.domains.linked import DependentDomain
-from pyrameter.methods.random import RandomSearch
+from pyrameter.methods.random_search import RandomSearch
 from pyrameter.trial import Trial, TrialStatus
 
 
@@ -85,20 +85,12 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         if method is None:
             method = RandomSearch()
 
-        completed = sum([1 if t.objective is not None else 0
-                         for t in self.trials])
-        n_trials = len(self.trials)
-        self.ready = n_trials < method.warm_up or completed >= method.warm_up
-
-        if self.ready:
-            hyperparameters = method(self)
-            for i, d in enumerate(self.domains):
-                d.current = hyperparameters[i]
-            trial = Trial(self, hyperparameters=hyperparameters)
-            self.trials.append(trial)
-            return trial.parameter_dict if to_dict else trial
-        else:
-            return None
+        hyperparameters = method(self)
+        for i, d in enumerate(self.domains):
+            d.current = hyperparameters[i]
+        trial = Trial(self, hyperparameters=hyperparameters)
+        self.trials.append(trial)
+        return trial.parameter_dict if to_dict else trial
 
     def __eq__(self, other):
         return len(self.domains) == len(other.domains) and \
