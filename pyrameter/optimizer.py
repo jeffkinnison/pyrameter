@@ -103,6 +103,11 @@ class FMin(object):
 
         self._did_sort = False
 
+    @property
+    def completed_trials(self):
+        return sum([int(t.status == TrialStatus.DONE)
+                    for t in self.trials.values()])
+
     def copy(self, alias_searchspaces=False):
         opt = FMin(self.exp_key, self.spec, self.method, self.backend, max_evals=self.max_evals)
         
@@ -112,6 +117,11 @@ class FMin(object):
             opt.active = self.active
         
         return opt
+
+    @property
+    def errored_trials(self):
+        return sum([int(t.status == TrialStatus.ERROR)
+                    for t in self.trials.values()])
 
     def generate(self, ssid=None, searchspaces=None):
         """Generate a set of hyperparameters from a search space.
@@ -212,6 +222,10 @@ class FMin(object):
         if show:
             plt.show()
 
+    @property
+    def ready_trials(self):
+        return sum([int(t.status == TrialStatus.READY)
+                    for t in self.trials.values()])
 
     def register_result(self, ssid, trial_id, objective=None, results=None,
                         errmsg=None):
@@ -238,26 +252,36 @@ class FMin(object):
             trial.objective = objective
             trial.results = results
             trial.errmsg = errmsg
+            trial.submissions += 1
+            trial.set_status()
+
             hyperparameters = trial.hyperparameters
+            submissions = trial.submissions
+
             if trial.id not in self.trials:
                 self.trials[trial.id] = trial
-            trial.submissions += 1
-
+            
             if ss in self.active and ss.done(self.max_evals):
                 self.active.remove(ss)
         else:
             hyperparameters = []
+            submissions = []
+
             for i, tid in enumerate(trial_id):
                 trial = [t for t in ss.trials if str(t.id) == str(tid)][0]
                 trial.objective = objective[i]
                 trial.results = results[i]
                 trial.errmsg = errmsg
+                trial.submissions += 1
+                trial.set_status()
+
                 hyperparameters.append(trial.hyperparameters)
+                submissions.append(trial.submissions)
+
                 if trial.id not in self.trials:
                     self.trials[trial.id] = trial
-                trial.submissions += 1
 
-                if ss.done(self.max_evals):
+                if ss in self.active and ss.done(self.max_evals):
                     self.active.remove(ss)
 
         return trial.submissions, hyperparameters
