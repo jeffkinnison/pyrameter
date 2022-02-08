@@ -10,9 +10,7 @@ continuous and discrete domains, and then search those spaces.
 ## Installation
 
 ```
-$ git clone https://github.com/jeffkinnison/pyrameter
-$ cd pyrameter
-$ pip install .
+pip install pyrameter
 ```
 
 ## Dependencies
