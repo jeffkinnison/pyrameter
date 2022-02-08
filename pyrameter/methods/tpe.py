@@ -10,8 +10,6 @@ import numpy as np
 from sklearn.mixture import GaussianMixture
 
 from pyrameter.methods.method import Method
-from pyrameter.methods.random import RandomSearch
-from pyrameter.trial import Trial, TrialStatus
 
 
 class TPE(Method):
