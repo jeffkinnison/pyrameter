@@ -196,6 +196,8 @@ class FMin(object):
         best = None
         for searchspace in self.searchspaces:
             candidate = searchspace.optimum()
+            if candidate is None:
+                continue
             if best is None or candidate.objective < best.objective:
                 best = candidate
         return best
@@ -338,7 +340,7 @@ class FMin(object):
         print(f'{total} Trials\t{pending} Pending\t{success} Successes\t{error} Errors')
         print('-------------------------------------------------------------------')
         print('\n')
-        if success > 0:
+        if success > 0 and opt:
             print('Optimal')
             print('-------------------------------------------------------------------')
             print(f'Trial {opt.id}\t{opt.objective} Loss')

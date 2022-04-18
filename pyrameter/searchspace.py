@@ -174,9 +174,13 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
             The trial with the optimal observed value of the objective
             function.
         """
-        return sorted([t for t in self.trials if t.objective is not None],
-                      key=lambda x: x.objective,
-                      reverse=(mode == 'max'))[0]
+        trials_sorted = sorted([t for t in self.trials if t.objective is not None],
+                key=lambda x: x.objective,
+                reverse=(mode == 'max'))
+        try:
+            return trials_sorted[0]
+        except IndexError:
+            return None
 
     def to_array(self):
         """Convert the trials in this search space into a contiguous array.
