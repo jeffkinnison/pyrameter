@@ -156,7 +156,7 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
         hyperparameters : list
             List of hyperparameters in order of domain name.
         """
-        return [d() for d in self.domains]
+        return np.array([d.generate() for d in self.domains])
 
     def optimum(self, mode='min'):
         """Get the trial with the optimal performance.
@@ -199,13 +199,15 @@ class SearchSpace(object, metaclass=SearchSpaceMeta):
                   dtype=np.float32)
 
             for i, result in enumerate(completed):
-                vec = [float(self.domains[j].map_to_domain(result.hyperparameters[j]))
-                    for j in range(len(self.domains))]
-                if isinstance(result.objective, Iterable):
-                    vec.extend(result.objective)
-                else:
-                    vec.append(result.objective)
-                out[i] += np.asarray(vec)
+                vec = list(result.hyperparameter_indices)
+                obj = result.objective
+                try:
+                    n_objs = len(result.objective)
+                except TypeError:
+                    n_objs = 1
+                out[i, :-n_objs] += vec
+                out[i, -n_objs:] += obj
+
         else:
             out = None
         return out
@@ -380,8 +382,7 @@ class PopulationSearchSpace(SearchSpace):
                            dtype=np.float32)
 
             for i, result in enumerate(self.trials[-len(self.population):]):
-                vec = [float(self.domains[j].map_to_domain(result.hyperparameters[j]))
-                       for j in range(len(self.domains))]
+                vec = result.hyperparameter_indices
                 if isinstance(result.objective, Iterable):
                     vec.extend(result.objective)
                 else:

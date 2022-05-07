@@ -328,34 +328,42 @@ class FMin(object):
 
     def summary(self):
         total = len(self.trials)
-        success = sum([1 for v in self.trials.values() if v.status == TrialStatus.DONE])
-        pending = sum([1 for v in self.trials.values() if v.status in [TrialStatus.INIT, TrialStatus.READY]])
-        error = sum([1 for v in self.trials.values() if v.status == TrialStatus.ERROR])
+        
+        if total > 0:
+            success = sum([1 if v.status == TrialStatus.DONE else 0
+                        for v in self.trials.values()])
+            pending = sum([1 if v.status in [TrialStatus.INIT, TrialStatus.READY] else 0
+                        for v in self.trials.values()])
+            error = sum([1 if v.status == TrialStatus.ERROR else 0
+                        for v in self.trials.values()])
 
-        opt = self.optimum()
+            opt = self.optimum() if success > 0 else None
 
-        print('\n')
-        print(f'Experiment {self.exp_key}')
-        print('-------------------------------------------------------------------')
-        print(f'{total} Trials\t{pending} Pending\t{success} Successes\t{error} Errors')
-        print('-------------------------------------------------------------------')
-        print('\n')
-        if success > 0 and opt:
-            print('Optimal')
+            print('\n')
+            print(f'Experiment {self.exp_key}')
             print('-------------------------------------------------------------------')
-            print(f'Trial {opt.id}\t{opt.objective} Loss')
-            print('\n')
-            print('with hyperparameters')
-            print('\n')
-            pprint.pprint(opt.parameter_dict)
-            print('\n')
-            print('and additional results')
-            print('\n')
-            pprint.pprint(opt.results)
+            print(f'{total} Trials\t{pending} Pending\t{success} Successes\t{error} Errors')
             print('-------------------------------------------------------------------')
             print('\n')
+            if success > 0:
+                print('Optimal')
+                print('-------------------------------------------------------------------')
+                print(f'Trial {opt.id}\t{opt.objective} Loss')
+                print('\n')
+                print('with hyperparameters')
+                print('\n')
+                pprint.pprint(opt.parameter_dict)
+                print('\n')
+                print('and additional results')
+                print('\n')
+                pprint.pprint(opt.results)
+                print('-------------------------------------------------------------------')
+                print('\n')
+            else:
+                print('No completed trials found. Check for issues and re-run the search.')
         else:
-            print('No completed trials found. Check for issues and re-run the search.')
+            print('\n')
+            print('No trials generated.')
 
     @property
     def trial_count(self):

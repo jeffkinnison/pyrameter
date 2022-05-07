@@ -58,6 +58,35 @@ class DiscreteDomain(Domain):
         self.callback = callback if callback is not None else lambda x: x
         self.random_state = seed
 
+    def bound_index(self, idx):
+        """Clamp an index into the domain to its viable values.
+
+        Parameters
+        ----------
+        idx : int
+            The index to clamp.
+
+        Returns
+        -------
+        idx : int
+            The index clamped to the range ``[0, n_entries]``.
+        """
+        return int(min(max(0, idx), len(self.domain)))
+
+    @property
+    def bounds(self):
+        """The viable lower and upper bounds of the domain.
+
+        For discrete domains, returns the first and last index of the domain,
+        always ``(0, n_elements)``.
+
+        Returns
+        -------
+        low, high : float
+            The lower and upper bounds of the domain.
+        """
+        return (0, len(self.domain))
+
     @property
     def complexity(self):
         if self._complexity is None:
@@ -95,10 +124,9 @@ class DiscreteDomain(Domain):
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         if len(self.domain) > 0:
-            index = self.callback(
-                scipy.stats.randint.rvs(0, len(self.domain),
-                                        random_state=self.random_state))
-            return self.domain[index]
+            index =  scipy.stats.randint.rvs(0, len(self.domain),
+                                        random_state=self.random_state)
+            return index
         else:
             return None
 

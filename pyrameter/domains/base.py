@@ -67,6 +67,27 @@ class Domain(object, metaclass=MetaDomain):
     def __ne__(self, other):
         return self.name != other.name
 
+    def bound_index(self, idx):
+        """Clamp an index into the domain to its viable values.
+
+        Parameters
+        ----------
+        idx
+            The index to clamp.
+
+        Returns
+        -------
+        idx
+            Returns the input unaltered.
+
+        Notes
+        -----
+        This is in place for consistency across domain subclasses. Override
+        to clamp in special cases, like DiscreteDomain, where it does not make
+        sense to go out of bounds.
+        """
+        return idx
+
     @property
     def complexity(self):
         """Compute the search complexity (size) of this domain.

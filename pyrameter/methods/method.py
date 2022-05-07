@@ -13,7 +13,10 @@ PopulationBilevelMethod
 """
 import copy
 import inspect
+from queue import LifoQueue
 import uuid
+
+import numpy as np
 
 
 class Method():
@@ -39,6 +42,7 @@ class Method():
         self.id = str(uuid.uuid4())
         self.warm_up = warm_up
         self.n_generated = 0
+        self.parameter_queue = LifoQueue()
 
     def __call__(self, space):
         """Handler for generating hyperparameters.
@@ -60,44 +64,52 @@ class Method():
         Instead, override `Method.generate` in subclasses to implement the
         optimization method.
         """
-        # Put the hyperparameters and objective values into an array
-        trial_data = space.to_array()
-        completed = trial_data.shape[0] if trial_data is not None else 0
+        if self.parameter_queue.empty():
+            # Put the hyperparameters and objective values into an array
+            trial_data = space.to_array()
+            completed = trial_data.shape[0] if trial_data is not None else 0
 
-        # Either randomly generate seed hyperparameters for guided methods
-        # or generate values from this method. ``low_check`` ensures we
-        # randomly sample at least ``warm_up`` hyperparameter sets, and
-        # ``mod_check`` injects random samples to mitigate local minima.
-        low_check = self.n_generated < self.warm_up
-        mod_check = (self.n_generated % self.warm_up) == 0
-        
-        if completed < 2 or low_check or mod_check:
-            parameters = space.generate()
-        else:
-            parameters = self.generate(trial_data, space.domains)
+            # Either randomly generate seed hyperparameters for guided methods
+            # or generate values from this method. ``low_check`` ensures we
+            # randomly sample at least ``warm_up`` hyperparameter sets, and
+            # ``mod_check`` injects random samples to mitigate local minima.
+            low_check = self.n_generated < self.warm_up
+            mod_check = (self.n_generated % self.warm_up) == 0
+            
+            if completed < 2 or low_check or mod_check:
+                parameters = space.generate()
+            else:
+                parameters = self.generate(trial_data, space.domains)
 
-        self.n_generated += 1
+            if parameters.ndim == 1:
+                parameters = np.expand_dims(parameters, axis=0)
 
-        # Make sure the returned parameters are 1) in some type of sequence
-        # and 2) the same length as the number of domains. Mismatches here
-        # break future generation.
-        try:
-            if len(parameters) != len(space.domains):
-                raise ValueError(
-                    'Generated parameter sequence of length ' +
-                    f'{len(parameters)} does not match the number of ' +
-                    f'domains ({len(space.domains)}). Please ensure the ' +
-                    'method generates one hyperparameter per domain.'
-                )
-        except TypeError:
-            raise ValueError(
-                'Generated parameters must be a sequence or array of ' +
-                f'values, received {type(parameters)} from method ' +
-                f'{self.__name__}. Please ensure the method output ' +
-                'is correct.'
-            )
+            self.n_generated += parameters.shape[0]
 
-        parameters = self.normalize(space, parameters)
+            # Make sure the returned parameters are 1) in some type of sequence
+            # and 2) the same length as the number of domains. Mismatches here
+            # break future generation.
+            # try:
+            #     if len(parameters) != len(space.domains):
+            #         raise ValueError(
+            #             'Generated parameter sequence of length ' +
+            #             f'{len(parameters)} does not match the number of ' +
+            #             f'domains ({len(space.domains)}). Please ensure the ' +
+            #             'method generates one hyperparameter per domain.'
+            #         )
+            # except TypeError:
+            #     raise ValueError(
+            #         'Generated parameters must be a sequence or array of ' +
+            #         f'values, received {type(parameters)} from method ' +
+            #         f'{self.__name__}. Please ensure the method output ' +
+            #         'is correct.'
+            #     )
+            
+            for i in range(parameters.shape[0]):
+                self.parameter_queue.put_nowait(parameters[i])
+
+        if not self.parameter_queue.empty():
+            parameters = self.normalize(space, self.parameter_queue.get_nowait())
 
         return parameters
 
@@ -163,7 +175,7 @@ class Method():
             List of normalized hyperparameters in the same order as
             ``hyperparameters``.
         """
-        return [d.map_to_domain(h, bound=True)
+        return [d.bound_index(h)
                 for (d, h) in zip(space.domains, hyperparameters)]
 
     def to_json(self):
