@@ -73,7 +73,7 @@ class Trial(object, metaclass=TrialMeta):
 
         self._searchspace = weakref.ref(searchspace) \
                            if searchspace is not None else None
-        self.hyperparameters = hyperparameters
+        self._hyperparameters = hyperparameters
         self.results = results
         self.objective = objective
         self.errmsg = errmsg
@@ -132,6 +132,16 @@ class Trial(object, metaclass=TrialMeta):
         trial.dirty = False
         trial.id = obj['id']
         return trial
+
+    @property
+    def hyperparameter_indices(self):
+        return self._hyperparameters
+
+    @property
+    def hyperparameters(self):
+        p = [d.map_to_domain(self._hyperparameters[i])
+                for i, d in enumerate(self.searchspace.domains)]
+        return p
 
     @property
     def parameter_dict(self):

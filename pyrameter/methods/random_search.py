@@ -5,6 +5,7 @@ Classes
 RandomSearch
     Randomly draw a set of hyperparameters from a search space.
 """
+import numpy as np
 
 from pyrameter.methods.method import Method
 
@@ -32,4 +33,4 @@ class RandomSearch(Method):
         values : list
             Values generated from ``space``.
         """
-        return [d.generate() for d in domains]
+        return np.array([d.generate() for d in domains])
