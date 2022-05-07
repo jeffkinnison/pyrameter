@@ -75,8 +75,22 @@ class ContinuousDomain(Domain):
         self.domain_args = args
         self.domain_kwargs = kwargs
 
+    def bound_index(self, idx):
+        lo, hi = self.bounds
+        return min(max(idx, lo), hi)
+
     @property
     def bounds(self):
+        """The viable lower and upper bounds of the domain.
+
+        For continuous probability distributions, returns the interval over
+        which 99.9% of the domain is defined.
+
+        Returns
+        -------
+        low, high : float
+            The lower and upper bounds of the domain.
+        """
         loc = self.domain_kwargs['loc'] if 'loc' in self.domain_kwargs \
                 else 0
         scl = self.domain_kwargs['scale'] if 'scale' in self.domain_kwargs \
