@@ -93,8 +93,8 @@ and keyword arguments.
 Sequences of Domains
 --------------------
 
-Sometimes, it is helpful to organize parameters in sequences, for example when
-tuning the height and width of a bounding box.
+Domains can be organized into ordered sequences by placing multiple domains in a
+tuple or using `pyrameter.domains.SequentialDomain`.
 
 ::
 
@@ -109,3 +109,11 @@ tuning the height and width of a bounding box.
     opt = pyrameter.FMin('constants', space)
 
     opt.generate()
+
+
+
+
+Hierarchical Domains
+--------------------
+
+

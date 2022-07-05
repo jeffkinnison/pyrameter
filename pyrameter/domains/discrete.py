@@ -58,6 +58,35 @@ class DiscreteDomain(Domain):
         self.callback = callback if callback is not None else lambda x: x
         self.random_state = seed
 
+    def bound_index(self, idx):
+        """Clamp an index into the domain to its viable values.
+
+        Parameters
+        ----------
+        idx : int
+            The index to clamp.
+
+        Returns
+        -------
+        idx : int
+            The index clamped to the range ``[0, n_entries]``.
+        """
+        return int(min(max(0, idx), len(self.domain)))
+
+    @property
+    def bounds(self):
+        """The viable lower and upper bounds of the domain.
+
+        For discrete domains, returns the first and last index of the domain,
+        always ``(0, n_elements)``.
+
+        Returns
+        -------
+        low, high : float
+            The lower and upper bounds of the domain.
+        """
+        return (0, len(self.domain))
+
     @property
     def complexity(self):
         if self._complexity is None:
@@ -70,7 +99,7 @@ class DiscreteDomain(Domain):
     @classmethod
     def from_json(cls, obj):
         if 'random_state' in obj:
-            rng = obj['domain_kwargs']['random_state']
+            rng = obj['random_state']
             random_state = np.random.RandomState()
             random_state.set_state((rng[0], np.array(rng[1], dtype=np.uint32),
                                     rng[2], rng[3], rng[4]))
@@ -78,17 +107,26 @@ class DiscreteDomain(Domain):
         else:
             random_state = obj['random_state']
             del obj['random_state']
+
+        try:
+            callback = dill.loads(obj['callback'])
+        except KeyError:
+            callback = None
+        
         domain = cls(obj['name'], obj['domain'],
-                     callback=dill.loads(obj['callback']), seed=random_state)
+                     callback=callback, seed=random_state)
+        
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         if len(self.domain) > 0:
-            index = self.callback(
-                scipy.stats.randint.rvs(0, len(self.domain),
-                                        random_state=self.random_state))
-            return self.domain[index]
+            index =  scipy.stats.randint.rvs(0, len(self.domain),
+                                        random_state=self.random_state)
+            return index
         else:
             return None
 
@@ -120,7 +158,7 @@ class DiscreteDomain(Domain):
         if isinstance(self.random_state, np.random.RandomState):
             rs = self.random_state.get_state()
             jsonified.update({
-                'random_state': [rs[0], list(rs[1]), rs[2], rs[3], rs[4]]
+                'random_state': rs
             })
         else:
             jsonified.update({'random_state': self.random_state})

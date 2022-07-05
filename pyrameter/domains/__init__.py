@@ -27,8 +27,9 @@ from .discrete import DiscreteDomain
 from .exhaustive import ExhaustiveDomain
 from .joint import JointDomain
 # from .searchspace import SearchSpace
+from .repeated import RepeatedDomain
 from .sequence import SequenceDomain
 
 __all__ = ["Domain", "ConditionalDomain", "ConstantDomain", "ContinuousDomain",
            "DependentDomain", "DiscreteDomain", "ExhaustiveDomain",
-           "JointDomain", "SequenceDomain"]
+           "JointDomain", "RepeatedDomain", "SequenceDomain"]

@@ -1,14 +1,18 @@
-"""
+"""Tree-structured Parzen Enstimators for generating hyperparameters.
+
+Classes
+-------
+TPE
+
 """
 
 import numpy as np
 from sklearn.mixture import GaussianMixture
 
-from pyrameter.methods.random import random_search
-from pyrameter.trial import Trial
+from pyrameter.methods.method import Method
 
 
-def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
+class TPE(Method):
     """Tree-structured Parzen Enstimators for generating hyperparameters.
 
     Parameters
@@ -34,49 +38,69 @@ def tpe(space, best_split=0.2, n_samples=10, warm_up=10, **gmm_kws):
         The array of hyperparameter values with the highest expected
         improvement from among the candidate ``n_samples``.
     """
-    # Warm up with random search and inject new random search
-    # hyperparameters at an interval. This attempts to prevent TPE from
-    # converging too quickly.
-    if len(space.objective) < warm_up or len(space.objective) % warm_up == 0:
-        params = random_search(space)
-    else:
-        params = []
+    def __init__(self, best_split=0.2, n_samples=10, warm_up=50, **gmm_kws):
+        super().__init__(warm_up)
 
+        self.best_split = best_split
+        self.n_samples = n_samples
+        self.gmm_kws = gmm_kws
+    
+    def generate(self, trial_data, domains):
+        """Generate a set of hyperparameters.
+
+        Parameters
+        ----------
+        trial_data : array_like
+            A 2-d numpy array where each row is one completed trial
+            (hyperparameter set) and each column corresponds to one
+            hyperparameter domain (always in the same order) with the
+            objective value of the trial in the last column.
+        domains : list of pyrameter.domain.base.Domain
+            The domains from which hyperparameters were generated. These
+            are provided in the same order as the columns in ``trial_data``.
+        
+        Returns
+        -------
+        array_like
+            A 1-d list or array of new hyperparameter values with one element
+            per hyperparameter domain in the same order as the columns in
+            ``trial_data``.
+        """
         # Collect all of the evaluated hyperparameter values and their
         # associated objective function value into a feature vector.
-        features = space.to_array().T
-        losses = np.array(space.objective)
+        features, losses = trial_data[:, :-1], trial_data[:, -1]
 
         # Sort the hyperparameters by their performance and split into
         # the "best" and "rest" performers.
-        idx = np.argsort(losses, axis=0)
-        split = int(np.ceil(idx.shape[0] * best_split))
+        idx = np.argsort(losses)
+        split = int(np.ceil(idx.shape[0] * self.best_split))
         losses = np.reshape(losses, (-1, 1))
 
+        params = []
+
+        # for j in range(features.shape[1]):
         # Model the objective function based on each feature.
-        for j in range(features.shape[0]):
-            l = GaussianMixture(**gmm_kws)
-            g = GaussianMixture(**gmm_kws)
-            l.fit(np.reshape(features[j, idx[:split]], (-1, 1)),
-                  losses[idx[:split]])
-            l.fit(np.reshape(features[j, idx[split:]], (-1, 1)),
-                  losses[idx[split:]])
+        self.gmm_kws['n_components'] = 5
+        l = GaussianMixture(**self.gmm_kws)
+        self.gmm_kws['n_components'] = 5
+        g = GaussianMixture(**self.gmm_kws)
 
-            # Sample hyperparameter values from the "best" model and score
-            # the samples with each model.
-            samples, _ = l.sample(n_samples=n_samples)
-            score_l = l.score(samples)
-            score_g = g.score(samples)
+        l.fit(features[idx[:split]],
+                losses[idx[:split]])
+        g.fit(features[idx[split:]],
+                losses[idx[split:]])
 
-            # Compute the expected improvement; i.e. maximize the l score
-            # while minimizing the g score. Higher values are better.
-            ei = score_l / score_g
-            best = samples[np.argmax(np.squeeze(ei).ravel())]
+        # Sample hyperparameter values from the "best" model and score
+        # the samples with each model.
+        samples, _ = l.sample(n_samples=self.n_samples)
+        score_l = l.score_samples(samples)
+        score_g = g.score_samples(samples)
 
-            # Add the value with the best expected improvement
-            domain = space.nodes[j]
-            params.append(domain.map_to_domain(best[0]), bound=True)
+        # Compute the expected improvement; i.e. maximize the l score
+        # while minimizing the g score. Higher values are better.
+        ei = score_l / score_g # best_split + (score_l / score_g * best_split)
+        best = samples[np.argmax(np.squeeze(ei))]
 
-            params = Trial(space, hyperparameters=params)
-            space.results.append(params)
-    return params
+        # Add the value with the best expected improvement
+        params = best
+        return params

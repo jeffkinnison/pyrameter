@@ -12,6 +12,7 @@ import shutil
 
 from pyrameter.backend.base import BaseBackend
 from pyrameter.searchspace import SearchSpace
+from pyrameter.utils import PyrameterDecoder, PyrameterEncoder
 
 
 class JSONBackend(BaseBackend):
@@ -41,7 +42,7 @@ class JSONBackend(BaseBackend):
             The experiment state in the JSON file.
         """
         with open(self.path, 'r') as f:
-            objs = json.load(f)
+            objs = json.load(f, cls=PyrameterDecoder)
         return [SearchSpace.from_json(obj) for obj in objs]
 
     def save(self, searchspaces):
@@ -67,4 +68,4 @@ class JSONBackend(BaseBackend):
                 shutil.copyfile(srcfile, destfile)
 
         with open(self.path, 'w') as f:
-            json.dump(out, f)
+            json.dump(out, f, cls=PyrameterEncoder)

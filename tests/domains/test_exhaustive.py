@@ -8,15 +8,17 @@ def test_init():
     d = ExhaustiveDomain('foo', [1, 2, 3, 4])
     assert d.name == 'foo'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
-    assert d.random_state is None
+    assert len(d.domain) == 4
     assert d._complexity is None
-    assert d._current is None
+    assert d.current is None
 
     d = ExhaustiveDomain('bar', range(1, 5))
     assert d.name == 'bar'
     assert all(map(lambda x: x[0] == x[1], zip(d.domain, [1, 2, 3, 4])))
+    assert len(d.domain) == 4
+    assert d._index == 0
     assert d._complexity is None
-    assert d._current is None
+    assert d.current is None
 
     names = ['baz', 'qux', 'meep', 'moop', 'eek', 'barba', 'durkle']
     domains = [1, 1.0, 'hi', (1, 2), True, False, None]
@@ -24,9 +26,20 @@ def test_init():
         d = ExhaustiveDomain(name, domain)
         assert d.name == name
         assert isinstance(d.domain, list)
+        assert len(d.domain) == 1
         assert d.domain[0] == domain
+        assert d._index == 0
         assert d._complexity is None
-        assert d._current is None
+        assert d.current is None
+
+    d = ExhaustiveDomain('test', domains)
+    assert d.name == 'test'
+    assert isinstance(d.domain, list)
+    assert all(map(lambda x: x[0] == x[1], zip(d.domain, domains)))
+    assert len(d.domain) == len(domains)
+    assert d._index == 0
+    assert d._complexity is None
+    assert d.current is None
 
 
 def test_complexity():
@@ -40,8 +53,19 @@ def test_complexity():
 
 def test_generate():
     d = ExhaustiveDomain('foo', 1)
-    with pytest.raises(NotImplementedError):
-        d.generate()
+    assert d.generate() == 1
+    assert d._index == 0
+
+    d = ExhaustiveDomain('foo', [])
+    assert d.generate() is None
+
+    domains = [1, 1.0, 'hi', (1, 2), True, False, None]
+    for i in range(1, len(domains)):
+        d = ExhaustiveDomain('foo', domains[:i])
+        
+        for j in range(i):
+            assert d.generate() == domains[j]
+            assert d._index == (j + 1 if j < i - 1 else 0)
 
 
 def test_to_index():
@@ -62,8 +86,8 @@ def test_to_json():
         'name': 'foo',
         'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
         'domain': [1, 2, 3, 4],
+        'index': 0,
     }
-    print(d.to_json())
     assert d.to_json() == correct
 
     d = ExhaustiveDomain('bar', range(1, 5))
@@ -71,6 +95,7 @@ def test_to_json():
         'name': 'bar',
         'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
         'domain': [1, 2, 3, 4],
+        'index': 0,
     }
     assert d.to_json() == correct
 
@@ -81,6 +106,7 @@ def test_to_json():
         correct = {
             'name': name,
             'type': 'pyrameter.domains.exhaustive.ExhaustiveDomain',
-            'domain': [domain]
+            'domain': [domain],
+            'index': 0,
         }
         assert d.to_json() == correct

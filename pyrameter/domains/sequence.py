@@ -3,12 +3,17 @@
 Classes
 -------
 SequenceDomain
-    Multiple hyperparameter domains grouped together.
+    Multiple ordered hyperparameter domains.
 """
 
+import dill
 import numpy as np
 
 from pyrameter.domains.base import Domain
+from pyrameter.domains.constant import ConstantDomain
+from pyrameter.domains.continuous import ContinuousDomain
+from pyrameter.domains.discrete import DiscreteDomain
+from pyrameter.domains.joint import JointDomain
 
 
 class SequenceDomain(Domain):
@@ -44,14 +49,12 @@ class SequenceDomain(Domain):
         adjusted_domains = []
         for d in domain:
             if isinstance(d, dict):
-                adjusted_domains.append(Specification(d))
-            elif isinstance(val, JointDomain):
-                adjusted_domains.append(Specification(name=d.name, **d.domain))
-            elif isinstance(val, list):
+                adjusted_domains.append(JointDomain(**d))
+            elif isinstance(d, list):
                 adjusted_domains.append(DiscreteDomain(d))
-            elif isinstance(val, tuple):
+            elif isinstance(d, tuple):
                 adjusted_domains.append(SequenceDomain(d))
-            elif isinstance(d, (Domain, Specification)):
+            elif isinstance(d, Domain):
                 adjusted_domains.append(d)
             else:
                 adjusted_domains.append(ConstantDomain(d))
@@ -69,11 +72,19 @@ class SequenceDomain(Domain):
 
     @classmethod
     def from_json(cls, obj):
-        pass
+        domain = cls(obj['name'], [Domain.from_json(d) for d in obj['domains']])
+
+        domain.id = obj['id']
+        domain.current = obj['current']
+
+        return domain
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return tuple([self.callback(d.generate()) for d in self.domain])
+
+    def map_to_domain(self, index, bound=True):
+        pass
 
     def to_index(self, value):
         """Convert a value to its index in the domain."""

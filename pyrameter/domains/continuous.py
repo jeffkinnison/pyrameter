@@ -5,6 +5,7 @@ Classes
 ContinuousDomain
     A continuous hyperparameter domain.
 """
+import sys
 
 import dill
 import numpy as np
@@ -67,15 +68,45 @@ class ContinuousDomain(Domain):
             if isinstance(seed, int):
                 seed = np.random.RandomState(seed)
             kwargs['random_state'] = seed
+        else:
+            seed = np.random.RandomState(np.random.randint(int(2**32 - 1), dtype=np.uint32))
+            kwargs['random_state'] = seed
 
         self.domain_args = args
         self.domain_kwargs = kwargs
 
+    def bound_index(self, idx):
+        lo, hi = self.bounds
+        return min(max(idx, lo), hi)
+
+    @property
+    def bounds(self):
+        """The viable lower and upper bounds of the domain.
+
+        For continuous probability distributions, returns the interval over
+        which 99.9% of the domain is defined.
+
+        Returns
+        -------
+        low, high : float
+            The lower and upper bounds of the domain.
+        """
+        loc = self.domain_kwargs['loc'] if 'loc' in self.domain_kwargs \
+                else 0
+        scl = self.domain_kwargs['scale'] if 'scale' in self.domain_kwargs \
+                else 1
+        return self.domain.interval(0.999, *self.domain_args,
+                                    loc=loc, scale=scl)
+
     @property
     def complexity(self):
         if self._complexity is None:
+            loc = self.domain_kwargs['loc'] if 'loc' in self.domain_kwargs \
+                  else 0
+            scl = self.domain_kwargs['scale'] if 'scale' in self.domain_kwargs \
+                  else 1
             a, b = self.domain.interval(0.999, *self.domain_args,
-                                        **self.domain_kwargs)
+                                        loc=loc, scale=scl)
             self._complexity = 2 + np.abs(b - a)
         return self._complexity
 
@@ -90,9 +121,19 @@ class ContinuousDomain(Domain):
         else:
             random_state = obj['domain_kwargs']['random_state']
             del obj['domain_kwargs']['random_state']
+
+        try:
+            callback = dill.loads(obj['callback'])
+        except KeyError:
+            callback = None
+
         domain = cls(obj['name'], obj['domain'], *obj['domain_args'],
-                     dill.loads(obj['callback']), seed=random_state,
+                     callback=callback, seed=random_state,
                      **obj['domain_kwargs'])
+        
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):
@@ -101,16 +142,6 @@ class ContinuousDomain(Domain):
             self.domain.rvs(*self.domain_args, **self.domain_kwargs))
 
     def map_to_domain(self, value, bound=False):
-        if bound:
-            try:
-                pdf_kwargs = {k: v for k, v in self.domain_kwargs.items()
-                              if k != 'random_state'}
-                prob = self.domain.pdf(
-                    value, *self.domain_args, **pdf_kwargs)
-                if prob == 0:
-                    value = None
-            except ValueError:
-                value = None
         return value
 
     def to_index(self, value, bound=False):
@@ -129,21 +160,17 @@ class ContinuousDomain(Domain):
     def to_json(self):
         jsonified = super(ContinuousDomain, self).to_json()
 
-        rng = self.domain_kwargs['random_state'].get_state()
-        dks = {k: v for k, v in self.domain_kwargs.items()}
-        dks['random_state'] = (rng[0], list(rng[1]), rng[2], rng[3], rng[4])
-
         jsonified.update({
             'domain': self.domain.name,
             'domain_args': self.domain_args,
-            'callback': dill.dumps(self.callback),
-            'domain_kwargs': dks
+            'domain_kwargs': {}
         })
 
         for key, val in self.domain_kwargs.items():
             if key == 'random_state' and isinstance(val, np.random.RandomState):
-                val = list(val.get_state())
-                val[1] = list(val[1])
-            jsonified['domain_kwargs'][key] = val
+                rs = val.get_state()
+                jsonified['domain_kwargs'].update({'random_state': rs})
+            else:
+                jsonified['domain_kwargs'][key] = val
 
         return jsonified

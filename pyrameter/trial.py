@@ -8,7 +8,10 @@ Trial
 
 import enum
 import itertools
+import re
 import weakref
+
+import numpy as np
 
 
 @enum.unique
@@ -70,9 +73,9 @@ class Trial(object, metaclass=TrialMeta):
         self.id = next(self.__class__._counter)
         self.dirty = False
 
-        self.searchspace = weakref.ref(searchspace) \
+        self._searchspace = weakref.ref(searchspace) \
                            if searchspace is not None else None
-        self.hyperparameters = hyperparameters
+        self._hyperparameters = hyperparameters
         self.results = results
         self.objective = objective
         self.errmsg = errmsg
@@ -101,6 +104,25 @@ class Trial(object, metaclass=TrialMeta):
                 self.objective == other.objective and
                 self.errmsg == other.errmsg and
                 self.status == other.status)
+    
+    def flatten_results(self):
+        if self.results is None:
+            return {}
+
+        flat = {}
+
+        def recurse_nested(current, name=''):
+            if not isinstance(current, dict):
+                if name == '':
+                    name = 'results'
+                flat[name] = current
+            else:
+                for key in current.keys():
+                    recurse_nested(current[key], name='.'.join([name, key]))
+        
+        recurse_nested(self.results)
+        return flat
+
 
     @classmethod
     def from_json(cls, obj):
@@ -110,7 +132,18 @@ class Trial(object, metaclass=TrialMeta):
                     objective=obj['objective'],
                     errmsg=obj['errmsg'])
         trial.dirty = False
+        trial.id = obj['id']
         return trial
+
+    @property
+    def hyperparameter_indices(self):
+        return self._hyperparameters
+
+    @property
+    def hyperparameters(self):
+        p = [d.map_to_domain(self._hyperparameters[i])
+                for i, d in enumerate(self.searchspace.domains)]
+        return p
 
     @property
     def parameter_dict(self):
@@ -128,21 +161,46 @@ class Trial(object, metaclass=TrialMeta):
             specification.
         """
         params = {}
-        for i, domain in enumerate(self.searchspace().domains):
+        for i, domain in enumerate(self.searchspace.domains):
             curr = params
-            path = domain.name.strip('/').split('/')
-            for p in path[:-1]:
+            path = domain.name.strip('.').split('.')
+            for p in path:
                 if p not in curr:
-                    curr[p] = {}
-                curr = curr[p]
-            curr[path[-1]] = self.hyperparameters[i]
+                    if re.search(r'[_][_][_][\d]+', p):
+                        pnew, num = p.split('___')
+                        num = int(num)
+                        curr[pnew] = []
+                    else:
+                        curr[p] = {}
+
+                if re.search(r'[_][_][_][\d]+', p):
+                    pnew, num = p.split('___')
+                    num = int(num)
+                    if len(curr[pnew]) <= num:
+                        for i in range(len(curr[pnew]), num + 1):
+                            curr[pnew].append(None)
+
+                    if p != path[-1]:
+                        curr[pnew][num] = {}
+                        curr = curr[pnew][num]
+                    else:
+                        curr[pnew][num] = self.hyperparameters[i]
+                else:
+                    if p != path[-1]:
+                        curr = curr[p]
+                    else:
+                        curr[p] = self.hyperparameters[i]
         return params
+
+    @property
+    def searchspace(self):
+        return self._searchspace()
 
     def set_status(self):
         """Introspect to set the state of this trial."""
         if 'status' in self.__dict__:
             oldstatus = self.status
-            if self.errmsg is not None:
+            if self.errmsg is not None or self.objective is not None and np.isnan(self.objective):
                 self.status = TrialStatus.ERROR
             elif self.results is not None and self.hyperparameters is not None:
                 self.status = TrialStatus.DONE
@@ -155,8 +213,9 @@ class Trial(object, metaclass=TrialMeta):
     def to_json(self):
         """Convert this trial to a JSON-compatible representation."""
         return dict(
-            searchspace=self.searchspace().id
-                        if hasattr(self.searchspace(), 'id')
+            id=self.id,
+            searchspace=self.searchspace.id
+                        if hasattr(self.searchspace, 'id')
                         else self.searchspace,
             status=self.status.value,
             hyperparameters=self.hyperparameters,

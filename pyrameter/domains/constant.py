@@ -18,6 +18,10 @@ class ConstantDomain(Domain):
         The name of this hyperparameter domain.
     domain
         The single value in this domain.
+
+    See Also
+    --------
+    `pyrameter.domains.base.Domain`
     """
 
     def __init__(self, *args, **kwargs):
@@ -32,17 +36,64 @@ class ConstantDomain(Domain):
 
     @classmethod
     def from_json(cls, obj):
+        """Create a new domain from a JSON encoded object.
+
+        Parameters
+        ----------
+        obj : dict
+            JSON object created with ``to_json``.
+        
+        Returns
+        -------
+        domain : `pyrameter.domains.exhaustive.ExhaustiveDomain`
+            The domain encoded in ``obj``
+        """
         domain = cls(obj['name'], obj['domain'])
+
+        domain.id = obj['id']
+        domain.current = obj['current']
+        
         return domain
 
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return self.domain
 
-    def map_to_domain(self, idx):
+    def map_to_domain(self, idx, bound=True):
+        """Convert an index to its value within the domain.
+
+        This domain has a single value, so returns that value.
+
+        Parameters
+        ----------
+        index : int
+            Index into a discrete/categorical domain (e.g., a list).
+        bound : bool, optional
+            If True and ``index`` is out of bounds, return the first or last
+            entry in the domain (whichever is closer). Otherwise, raises an
+            IndexError if ``index`` is out of bounds.
+
+        Returns
+        -------
+        value
+            The value at ``index`` in the domain.
+
+        Raises
+        ------
+        IndexError
+            Raised when ``index`` is out of bounds and ``bound`` is ``False``.
+        """
         return self.domain
 
     def to_index(self, value):
+        """Convert a value to its index in the domain.
+
+        This domain has a single value, so the index is always zero.
+
+        Parameters
+        ----------
+        
+        """
         return 0
 
     def to_json(self):

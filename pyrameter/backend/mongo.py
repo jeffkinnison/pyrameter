@@ -11,6 +11,7 @@ from pymongo.operations import UpdateOne
 from bson.objectid import ObjectId
 
 from pyrameter.backend.base import BaseBackend
+from pyrameter.domains.base import Domain
 
 
 class MongoBackend(BaseBackend):
@@ -34,7 +35,7 @@ class MongoBackend(BaseBackend):
     def __init__(self, url, database):
         self.connection = pymongo.MongoClient(url)[database]
 
-    def load(self):
+    def load(self, exp_key):
         """Load a hyperparameter search state.
 
         Returns
@@ -42,13 +43,29 @@ class MongoBackend(BaseBackend):
         searchspaces : list of `pyrameter.domains.searchspace.SearchSpace`
             The search spaces in the eperiment as of their most recent save.
         """
-        searchspaces = self.connection['searchspaces'].find()
+        searchspaces = self.connection['searchspaces'].find({'exp_key': exp_key})
+        
+        loaded = []
+
         for searchspace in searchspaces:
             domains = self.connection['domains'].find(
                 {'_id': {'$in': searchspace['domains']}})
-            results = self.connection['trials'.find(
+            domains = sorted([Domain.from_json(d) for d in domains])
+
+            trials = self.connection['trials'.find(
                 {'_id': {'$in': searchspace['trials']}}
             )]
+            trials = [Trial.from_json(t) for t in trials]
+            for t in trials:
+                trial.dirty = False
+
+            ss = SearchSpace.from_json(searchspace)
+            ss.domains = domains
+            ss.trials = trials
+            loaded.append(ss)
+
+        return loaded
+
 
     def save(self, searchspaces):
         """Save a hyperparameter search state.
@@ -70,7 +87,7 @@ class MongoBackend(BaseBackend):
         trials = []
         for ss in searchspaces:
             domainset = domainset.union(set([d for d in ss.domains]))
-            trials.extend([r for r in ss.results if r.dirty])
+            trials.extend([t for t in ss.trials if t.dirty])
 
         domainset = list(domainset)
         domupdates = [UpdateOne({'_id': domain.id},

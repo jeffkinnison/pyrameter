@@ -7,9 +7,12 @@ Specification
 """
 
 import copy
+import itertools
 import os
 
-from pyrameter.domains import *
+from pyrameter.domains import Domain, ConstantDomain, ContinuousDomain, \
+                              DiscreteDomain, ExhaustiveDomain, JointDomain, \
+                              RepeatedDomain, SequenceDomain 
 
 
 class Specification(object):
@@ -52,6 +55,14 @@ class Specification(object):
     def __contains__(self, key):
         return (key in self.children)
 
+    def __deepcopy__(self, memo):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memo[id(self)] = result
+        for k, v in self.__dict__.items():
+            setattr(result, k, copy.deepcopy(v, memo))
+        return result
+
     def __getattr__(self, key):
         if 'children' in self.__dict__ and key in self.__dict__['children']:
             return self.children[key]
@@ -67,9 +78,12 @@ class Specification(object):
                 self.children[key] = DiscreteDomain(key, val)
             elif isinstance(val, tuple):
                 self.children[key] = SequenceDomain(key, val)
+            elif isinstance(val, RepeatedDomain) and isinstance(val.domain[0], JointDomain):
+                self.children[key] = RepeatedDomain(key, Specification(**val.domain[0].domain), val.repetitions)
             elif isinstance(val, (Domain, Specification)):
                 copyval = copy.deepcopy(val)
                 copyval.name = key
+                # val.name = key
                 self.children[key] = copyval
             else:
                 self.children[key] = ConstantDomain(key, val)
@@ -93,19 +107,17 @@ class Specification(object):
         if root is None:
             root = ''
 
-        root = os.path.join(root, self.name)
-
         # Gather all sets of domains corresponding to differnt machine learning
         # algorithms to be hyperparameterized.
         domainsets = [[]] if not self.exclusive else []
 
         # Iterate over all domains in this sepcification
         for key, val in self.children.items():
-            val.name = os.path.join(root, val.name)
+            val.name = '.'.join([root, val.name])
 
             # Recurse into nested specifications and merge the results
             if isinstance(val, Specification):
-                subdomainsets = val.split()
+                subdomainsets = val.split(root=val.name)
                 if self.exclusive:
                     domainsets.extend(subdomainsets)
                 else:
@@ -125,6 +137,25 @@ class Specification(object):
                             new_domainsets.append(ds1 + [newval])
                 if len(new_domainsets) > 0:
                     domainsets = new_domainsets
+            elif isinstance(val, RepeatedDomain) and val.should_split:
+                new_domainsets = []
+                split = val.split()
+                if self.exclusive:
+                    for s in split:
+                        if isinstance(s, Specification):
+                            s = s.split(root=val.name)
+                    domainsets.extend(split)
+                else:
+                    for ds1 in domainsets:
+                        for ds2 in split:
+                            subdomain = []
+                            if isinstance(ds2.domain[0], Specification):
+                                for d in ds2.domain:
+                                    subdomain.extend(itertools.chain.from_iterable(d.split(root=val.name)))
+                            else:
+                                subdomain.extend(ds2.domain)
+                            new_domainsets.extend([ds1 + subdomain])
+                domainsets = new_domainsets
             else:
                 if self.exclusive:
                     domainsets.append([val])
