@@ -11,6 +11,8 @@ import itertools
 import re
 import weakref
 
+import numpy as np
+
 
 @enum.unique
 class TrialStatus(enum.Enum):
@@ -198,7 +200,7 @@ class Trial(object, metaclass=TrialMeta):
         """Introspect to set the state of this trial."""
         if 'status' in self.__dict__:
             oldstatus = self.status
-            if self.errmsg is not None:
+            if self.errmsg is not None or np.isnan(self.objective):
                 self.status = TrialStatus.ERROR
             elif self.results is not None and self.hyperparameters is not None:
                 self.status = TrialStatus.DONE
