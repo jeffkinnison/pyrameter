@@ -196,6 +196,8 @@ class FMin(object):
         best = None
         for searchspace in self.searchspaces:
             candidate = searchspace.optimum()
+            if candidate is None:
+                continue
             if best is None or candidate.objective < best.objective:
                 best = candidate
         return best
@@ -326,7 +328,7 @@ class FMin(object):
 
     def summary(self):
         total = len(self.trials)
-
+        
         if total > 0:
             success = sum([1 if v.status == TrialStatus.DONE else 0
                         for v in self.trials.values()])
