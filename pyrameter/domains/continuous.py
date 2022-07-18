@@ -61,16 +61,6 @@ class ContinuousDomain(Domain):
         seed = kwargs.pop('seed', None)
 
         self.callback = callback if callback is not None else lambda x: x
-        self.seed = seed
-
-
-        if seed is not None:
-            if isinstance(seed, int):
-                seed = np.random.RandomState(seed)
-            kwargs['random_state'] = seed
-        else:
-            seed = np.random.RandomState(np.random.randint(int(2**32 - 1), dtype=np.uint32))
-            kwargs['random_state'] = seed
 
         self.domain_args = args
         self.domain_kwargs = kwargs
@@ -139,7 +129,10 @@ class ContinuousDomain(Domain):
     def generate(self):
         """Generate a hyperparameter value from this domain."""
         return self.callback(
-            self.domain.rvs(*self.domain_args, **self.domain_kwargs))
+            self.domain.rvs(
+                *self.domain_args,
+                random_state=self._rng.rng,
+                **self.domain_kwargs))
 
     def map_to_domain(self, value, bound=False):
         return value

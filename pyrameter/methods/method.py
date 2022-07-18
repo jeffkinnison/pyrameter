@@ -18,6 +18,8 @@ import uuid
 
 import numpy as np
 
+from pyrameter.reproducibility import RNG
+
 
 class Method():
     """Abstract class on which to develop optimization methods.
@@ -43,6 +45,7 @@ class Method():
         self.warm_up = warm_up
         self.n_generated = 0
         self.parameter_queue = LifoQueue()
+        self.random_state = RNG
 
     def __call__(self, space):
         """Handler for generating hyperparameters.

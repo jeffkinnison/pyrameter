@@ -22,6 +22,7 @@ from pyrameter.domains.exhaustive import ExhaustiveDomain
 from pyrameter.domains.joint import JointDomain
 import pyrameter.methods
 from pyrameter.methods.method import Method, PopulationMethod
+from pyrameter.reproducibility import RNG
 from pyrameter.searchspace import SearchSpace, GridSearchSpace, PopulationSearchSpace
 from pyrameter.specification import Specification
 from pyrameter.trial import Trial, TrialStatus
@@ -49,8 +50,10 @@ class FMin(object):
     method : callable
     """
 
-    def __init__(self, exp_key, spec, method, backend, max_evals=None):
+    def __init__(self, exp_key, spec, method, backend, max_evals=None, seed=None):
         self.exp_key = exp_key
+        self.rng = RNG
+        self.rng.set_seed(seed=seed)
 
         if not isinstance(spec, Specification):
             if isinstance(spec, JointDomain):

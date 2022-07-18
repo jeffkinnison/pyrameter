@@ -20,7 +20,7 @@ class SMAC(Method):
     ----------
     space : pyrameter.searchspace.SearchSpace
     """
-    def __init__(self, n_samples=20, warm_up=10, **rf_kws):
+    def __init__(self, n_samples=20, warm_up=20, **rf_kws):
         super().__init__(warm_up=warm_up)
         self.n_samples = n_samples
         self.rf_kws = rf_kws
@@ -31,7 +31,7 @@ class SMAC(Method):
         params = []
 
         # Set up and train the Gaussian process regressor
-        rf = RandomForestRegressor(**self.rf_kws)
+        rf = RandomForestRegressor(random_state=self.random_state.rng, **self.rf_kws)
         rf.fit(features, losses)
 
         # Generate a number of candidate hyperparameter values.

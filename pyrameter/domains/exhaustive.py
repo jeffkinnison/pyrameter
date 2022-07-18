@@ -6,8 +6,6 @@ ExhaustiveDomain
     Discrete/categorical domain for exhaustive grid search.
 """
 
-from collections import Sequence
-
 from pyrameter.domains.base import Domain
 
 

@@ -38,7 +38,7 @@ class TPE(Method):
         The array of hyperparameter values with the highest expected
         improvement from among the candidate ``n_samples``.
     """
-    def __init__(self, best_split=0.2, n_samples=10, warm_up=50, **gmm_kws):
+    def __init__(self, best_split=0.2, n_samples=10, warm_up=20, **gmm_kws):
         super().__init__(warm_up)
 
         self.best_split = best_split
@@ -81,9 +81,9 @@ class TPE(Method):
         # for j in range(features.shape[1]):
         # Model the objective function based on each feature.
         self.gmm_kws['n_components'] = 5
-        l = GaussianMixture(**self.gmm_kws)
+        l = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
         self.gmm_kws['n_components'] = 5
-        g = GaussianMixture(**self.gmm_kws)
+        g = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
 
         l.fit(features[idx[:split]],
                 losses[idx[:split]])

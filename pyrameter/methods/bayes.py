@@ -80,7 +80,10 @@ class Bayesian(Method):
         x = scaler.fit_transform(features, losses)
 
         # Set up and train the Gaussian process regressor
-        gp = GaussianProcessRegressor(n_restarts_optimizer=20, **self.gp_kws)
+        gp = GaussianProcessRegressor(
+            n_restarts_optimizer=20,
+            random_state=self.random_state.rng,
+            **self.gp_kws)
         gp.fit(x, losses)
 
         # Generate a number of candidate hyperparameter values.
@@ -101,5 +104,6 @@ class Bayesian(Method):
         ei[sigma == 0] = 0  # sigma == 0 leads to NaNs in ei; handle it here
 
         params = potential_params[np.argmax(ei)]
+        params = scaler.inverse_transform(np.expand_dims(params, axis=0)).ravel()
 
         return params

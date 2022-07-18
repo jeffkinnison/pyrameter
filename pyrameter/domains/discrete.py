@@ -6,8 +6,6 @@ DiscreteDomain
     A discrete hyperparameter domain.
 """
 
-from collections import Sequence
-
 import dill
 import numpy as np
 import scipy.stats
@@ -43,20 +41,15 @@ class DiscreteDomain(Domain):
             raise ValueError('No domain provided.')
 
         callback = kwargs.pop('callback', None)
-        seed = kwargs.pop('seed', None)
 
-        if not isinstance(domain, Sequence) or isinstance(domain, (str, tuple)):
+        if not isinstance(domain, list) or isinstance(domain, (str, tuple)):
             domain = [domain]
         elif isinstance(domain, range):
             domain = list(domain)
 
         self.domain = list(domain)
 
-        if isinstance(seed, int):
-            seed = np.random.RandomState(seed)
-
         self.callback = callback if callback is not None else lambda x: x
-        self.random_state = seed
 
     def bound_index(self, idx):
         """Clamp an index into the domain to its viable values.
@@ -125,7 +118,7 @@ class DiscreteDomain(Domain):
         """Generate a hyperparameter value from this domain."""
         if len(self.domain) > 0:
             index =  scipy.stats.randint.rvs(0, len(self.domain),
-                                        random_state=self.random_state)
+                                        random_state=self._rng.rng)
             return index
         else:
             return None

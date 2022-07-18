@@ -1,7 +1,8 @@
 import numpy as np
-from scipy.optimize import minimize
-from sklearn.preprocessing import StandardScaler
 from pygam import GAM
+from scipy.optimize import minimize
+from scipy.stats import uniform
+from sklearn.preprocessing import StandardScaler
 
 from pyrameter.methods.method import BilevelMethod
 
@@ -77,9 +78,12 @@ class HOM(BilevelMethod):
             best_features = features[idx[0]]
 
             best_10 = features[idx[:int(len(idx) * 0.1)]]
+            scaled_variance = np.var(best_10) * self.jitter_strength
             params = best_features + \
-                np.random.uniform(low=-np.var(best_10) * self.jitter_strength,
-                                  high=np.var(best_10) * self.jitter_strength)
+                uniform.rvs(
+                    loc=-scaled_variance,
+                    scale=2 * scaled_variance,
+                    random_state=self.random_state.rng)
 
         # Compute the new optimal point along the surrogate at a standard
         # interval.

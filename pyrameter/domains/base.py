@@ -12,6 +12,8 @@ import itertools
 import os
 import re
 
+from pyrameter.reproducibility import RNG
+
 
 class MetaDomain(type):
     """Metaclass for behind the scenes processes for domains."""
@@ -37,6 +39,7 @@ class Domain(object, metaclass=MetaDomain):
         self.name = name
         self.current = None
         self._complexity = None
+        self._rng = RNG
 
     def __call__(self, *args, **kwargs):
         margs, mvargs, mkwargs, _ = inspect.getargspec(self.generate)

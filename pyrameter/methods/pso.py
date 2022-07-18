@@ -49,7 +49,7 @@ class PSO(PopulationMethod):
     """
     def __init__(self, population_size=50, omega=0.5, phi_p=0.5, phi_g=0.5, delta=0.0001, epsilon=0.0001):
         super().__init__(population_size=population_size)
-        self.population_size = population_size
+        self._population_cache = None
         self.velocities = None
         self.pbest = None
         self.pfmin = None
@@ -80,10 +80,16 @@ class PSO(PopulationMethod):
         for i, d in enumerate(domains):
             lo, hi = d.bounds
             velocities[i] += uniform.rvs(loc=lo, scale=(hi - lo),
+                                         random_state=self.random_state.rng,
                                          size=(self.population_size,))
         self.velocities = velocities.T
 
     def generate(self, population_data, domains):
+        if self._population_cache is None:
+            self._population_cache = population_data
+        else:
+            population_data = self._population_cache
+
         # Initialize velocities if they are not.
         if self.velocities is None:
             self.init_velocities(domains)
@@ -128,5 +134,7 @@ class PSO(PopulationMethod):
         self.velocities *= self.omega
         self.velocities += (pop_term + gen_term)
         pop = prev_pop + self.velocities
+
+        self._population_cache = pop
 
         return pop
