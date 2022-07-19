@@ -102,16 +102,6 @@ class ContinuousDomain(Domain):
 
     @classmethod
     def from_json(cls, obj):
-        if 'random_state' in obj['domain_kwargs']:
-            rng = obj['domain_kwargs']['random_state']
-            random_state = np.random.RandomState()
-            random_state.set_state((rng[0], np.array(rng[1], dtype=np.uint32),
-                                    rng[2], rng[3], rng[4]))
-            del obj['domain_kwargs']['random_state']
-        else:
-            random_state = obj['domain_kwargs']['random_state']
-            del obj['domain_kwargs']['random_state']
-
         try:
             callback = dill.loads(obj['callback'])
         except KeyError:
@@ -156,14 +146,10 @@ class ContinuousDomain(Domain):
         jsonified.update({
             'domain': self.domain.name,
             'domain_args': self.domain_args,
-            'domain_kwargs': {}
+            'domain_kwargs': {k: v for k, v in self.domain_kwargs.items}
         })
 
         for key, val in self.domain_kwargs.items():
-            if key == 'random_state' and isinstance(val, np.random.RandomState):
-                rs = val.get_state()
-                jsonified['domain_kwargs'].update({'random_state': rs})
-            else:
-                jsonified['domain_kwargs'][key] = val
+            jsonified['domain_kwargs'][key] = val
 
         return jsonified
