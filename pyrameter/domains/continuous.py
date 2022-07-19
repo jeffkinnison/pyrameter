@@ -146,10 +146,7 @@ class ContinuousDomain(Domain):
         jsonified.update({
             'domain': self.domain.name,
             'domain_args': self.domain_args,
-            'domain_kwargs': {k: v for k, v in self.domain_kwargs.items}
+            'domain_kwargs': {k: v for k, v in self.domain_kwargs.items()}
         })
-
-        for key, val in self.domain_kwargs.items():
-            jsonified['domain_kwargs'][key] = val
 
         return jsonified
