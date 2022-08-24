@@ -145,6 +145,7 @@ class HOM(BilevelMethod):
             params = scaler.inverse_transform(
                 np.expand_dims(x_new[idx_fv], axis=0)).ravel()
 
+        params = np.float64(params)
         return params
 
 def fun_gam1(params, gam1, gam2, t):
