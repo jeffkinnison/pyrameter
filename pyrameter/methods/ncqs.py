@@ -126,6 +126,7 @@ class NCQS(BilevelMethod):
             params = res.x[self.Mu_indices[0].shape[0]:-1]
             params = scaler.inverse_transform(np.expand_dims(params, axis=0)).ravel()
 
+        params = np.float64(params)
         return params
 
 
