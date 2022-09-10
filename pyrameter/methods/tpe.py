@@ -44,7 +44,7 @@ class TPE(Method):
         self.best_split = best_split
         self.n_samples = n_samples
         self.gmm_kws = gmm_kws
-    
+
     def generate(self, trial_data, domains):
         """Generate a set of hyperparameters.
 
@@ -66,41 +66,45 @@ class TPE(Method):
             per hyperparameter domain in the same order as the columns in
             ``trial_data``.
         """
-        # Collect all of the evaluated hyperparameter values and their
-        # associated objective function value into a feature vector.
-        features, losses = trial_data[:, :-1], trial_data[:, -1]
+        split = min(int(np.ceil(idx.shape[0] * self.best_split)), self.n_components)
 
-        # Sort the hyperparameters by their performance and split into
-        # the "best" and "rest" performers.
-        idx = np.argsort(losses)
-        split = int(np.ceil(idx.shape[0] * self.best_split))
-        losses = np.reshape(losses, (-1, 1))
+        if split < self.n_components:
+            params = [d.generate for d in domains]
+        else:
+            # Collect all of the evaluated hyperparameter values and their
+            # associated objective function value into a feature vector.
+            features, losses = trial_data[:, :-1], trial_data[:, -1]
 
-        params = []
+            # Sort the hyperparameters by their performance and split into
+            # the "best" and "rest" performers.
+            idx = np.argsort(losses)
+            losses = np.reshape(losses, (-1, 1))
 
-        # for j in range(features.shape[1]):
-        # Model the objective function based on each feature.
-        self.gmm_kws['n_components'] = 5
-        l = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
-        self.gmm_kws['n_components'] = 5
-        g = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
+            params = []
 
-        l.fit(features[idx[:split]],
-                losses[idx[:split]])
-        g.fit(features[idx[split:]],
-                losses[idx[split:]])
+            # for j in range(features.shape[1]):
+            # Model the objective function based on each feature.
+            self.gmm_kws['n_components'] = 5
+            l = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
+            self.gmm_kws['n_components'] = 5
+            g = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
 
-        # Sample hyperparameter values from the "best" model and score
-        # the samples with each model.
-        samples, _ = l.sample(n_samples=self.n_samples)
-        score_l = l.score_samples(samples)
-        score_g = g.score_samples(samples)
+            l.fit(features[idx[:split]],
+                    losses[idx[:split]])
+            g.fit(features[idx[split:]],
+                    losses[idx[split:]])
 
-        # Compute the expected improvement; i.e. maximize the l score
-        # while minimizing the g score. Higher values are better.
-        ei = score_l / score_g # best_split + (score_l / score_g * best_split)
-        best = samples[np.argmax(np.squeeze(ei))]
+            # Sample hyperparameter values from the "best" model and score
+            # the samples with each model.
+            samples, _ = l.sample(n_samples=self.n_samples)
+            score_l = l.score_samples(samples)
+            score_g = g.score_samples(samples)
 
-        # Add the value with the best expected improvement
-        params = best
+            # Compute the expected improvement; i.e. maximize the l score
+            # while minimizing the g score. Higher values are better.
+            ei = score_l / score_g # best_split + (score_l / score_g * best_split)
+            best = samples[np.argmax(np.squeeze(ei))]
+
+            # Add the value with the best expected improvement
+            params = best
         return params
