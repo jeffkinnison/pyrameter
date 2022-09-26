@@ -109,10 +109,15 @@ class Method():
             #     )
             
             for i in range(parameters.shape[0]):
-                self.parameter_queue.put_nowait(parameters[i])
+                self.parameter_queue.put(parameters[i])
 
+        parameters = None
         if not self.parameter_queue.empty():
-            parameters = self.normalize(space, self.parameter_queue.get_nowait())
+            try:
+                parameters = self.parameter_queue.get(timeout=10)
+                parameters = self.normalize(space, parameters)
+            except queue.Empty():
+                parameters = None
 
         return parameters
 
