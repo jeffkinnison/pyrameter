@@ -44,6 +44,8 @@ class TPE(Method):
         self.best_split = best_split
         self.n_samples = n_samples
         self.gmm_kws = gmm_kws
+        if 'n_components' not in self.gmm_kws:
+            self.gmm_kws['n_components'] = 5
 
     def generate(self, trial_data, domains):
         """Generate a set of hyperparameters.
@@ -67,7 +69,7 @@ class TPE(Method):
             ``trial_data``.
         """
         split = int(np.floor(trial_data.shape[0] * self.best_split))
-        n_components = self.gmm_kws.get('n_components', 1)
+        n_components = self.gmm_kws.get('n_components', 5)
         
         if split <= n_components:
             # Special case to handle GMM-specific constraints
@@ -86,9 +88,7 @@ class TPE(Method):
 
             # for j in range(features.shape[1]):
             # Model the objective function based on each feature.
-            self.gmm_kws['n_components'] = 5
             l = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
-            self.gmm_kws['n_components'] = 5
             g = GaussianMixture(random_state=self.random_state.rng, **self.gmm_kws)
 
             l.fit(features[idx[:split]],
