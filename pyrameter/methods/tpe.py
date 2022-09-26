@@ -69,7 +69,7 @@ class TPE(Method):
         split = int(np.floor(trial_data.shape[0] * self.best_split))
         n_components = self.gmm_kws.get('n_components', 1)
         
-        if split < n_components:
+        if split <= n_components:
             # Special case to handle GMM-specific constraints
             params = [d.generate for d in domains]
         else:
