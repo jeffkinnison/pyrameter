@@ -13,7 +13,7 @@ PopulationBilevelMethod
 """
 import copy
 import inspect
-from queue import LifoQueue
+import queue
 import uuid
 
 import numpy as np
@@ -44,7 +44,7 @@ class Method():
         self.id = str(uuid.uuid4())
         self.warm_up = warm_up
         self.n_generated = 0
-        self.parameter_queue = LifoQueue()
+        self.parameter_queue = queue.Queue()
         self.random_state = RNG
 
     def __call__(self, space):
