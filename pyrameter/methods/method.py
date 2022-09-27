@@ -116,7 +116,7 @@ class Method():
             try:
                 parameters = self.parameter_queue.get(timeout=10)
                 parameters = self.normalize(space, parameters)
-            except queue.Empty():
+            except queue.Empty:
                 parameters = None
 
         return parameters
