@@ -73,7 +73,7 @@ class TPE(Method):
         
         if split <= n_components:
             # Special case to handle GMM-specific constraints
-            params = np.array([d.generate for d in domains])
+            params = np.array([d.generate() for d in domains])
         else:
             # Collect all of the evaluated hyperparameter values and their
             # associated objective function value into a feature vector.
