@@ -89,6 +89,11 @@ class FMin(object):
                                  else GridSearchSpace(d, exp_key=self.exp_key)
                                  for d in domainsets]
 
+        self.method.set_rng(self.rng)
+        for ss in self.searchspaces:
+            for d in ss.domains:
+                d.set_rng(self.rng)
+        
         self.trials = {}
         self.active = [ss for ss in self.searchspaces]
 
