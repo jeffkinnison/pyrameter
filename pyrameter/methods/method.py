@@ -40,12 +40,12 @@ class Method():
     warm_up : int
         The number of warm up trials to run to prime the optimization method.
     """
-    def __init__(self, warm_up=20):
+    def __init__(self, warm_up=20, rng=None):
         self.id = str(uuid.uuid4())
         self.warm_up = warm_up
         self.n_generated = 0
         self.parameter_queue = queue.Queue()
-        self.random_state = RNG
+        self.random_state = rng
 
     def __call__(self, space):
         """Handler for generating hyperparameters.
