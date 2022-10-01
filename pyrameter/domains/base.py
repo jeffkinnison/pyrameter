@@ -39,7 +39,7 @@ class Domain(object, metaclass=MetaDomain):
         self.name = name
         self.current = None
         self._complexity = None
-        self._rng = RNG
+        self._rng = None
 
     def __call__(self, *args, **kwargs):
         margs, mvargs, mkwargs, _ = inspect.getargspec(self.generate)
@@ -171,6 +171,9 @@ class Domain(object, metaclass=MetaDomain):
             Raised when ``index`` is out of bounds and ``bound`` is ``False``.
         """
         raise NotImplementedError
+        
+    def set_rng(self, rng):
+        self._rng = rng
 
     def to_index(self, value):
         """Convert a value to its index in the domain."""

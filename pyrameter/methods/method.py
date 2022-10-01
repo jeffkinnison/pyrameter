@@ -45,7 +45,7 @@ class Method():
         self.warm_up = warm_up
         self.n_generated = 0
         self.parameter_queue = queue.Queue()
-        self.random_state = RNG
+        self.random_state = None
 
     def __call__(self, space):
         """Handler for generating hyperparameters.
@@ -185,6 +185,9 @@ class Method():
         """
         return [d.bound_index(h)
                 for (d, h) in zip(space.domains, hyperparameters)]
+    
+    def set_rng(self, rng):
+        self.random_state = rng
 
     def to_json(self):
         """Convert method state to a JSON-compatible dictionary.
