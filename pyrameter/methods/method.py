@@ -40,12 +40,12 @@ class Method():
     warm_up : int
         The number of warm up trials to run to prime the optimization method.
     """
-    def __init__(self, warm_up=20, rng=None):
+    def __init__(self, warm_up=20):
         self.id = str(uuid.uuid4())
         self.warm_up = warm_up
         self.n_generated = 0
         self.parameter_queue = queue.Queue()
-        self.random_state = rng
+        self.random_state = None
 
     def __call__(self, space):
         """Handler for generating hyperparameters.
@@ -185,6 +185,9 @@ class Method():
         """
         return [d.bound_index(h)
                 for (d, h) in zip(space.domains, hyperparameters)]
+    
+    def set_rng(self, rng):
+        self.random_state = rng
 
     def to_json(self):
         """Convert method state to a JSON-compatible dictionary.
