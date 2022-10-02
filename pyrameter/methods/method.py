@@ -368,6 +368,10 @@ class BilevelMethod(Method):
         
         self.inner_method = inner_method
 
+    def set_rng(self, rng):
+        self.inner_method.set_rng(rng)
+        super().set_rng(rng)
+
 
 class BilevelPopulationMethod(PopulationMethod):
     """Abstract class on which to develop bilevel population-based optimization methods.
@@ -423,3 +427,7 @@ class BilevelPopulationMethod(PopulationMethod):
                  'of pyrameter.methods.Method nor a valid callable.')
         
         self.inner_method = inner_method
+
+    def set_rng(self, rng):
+        self.inner_method.set_rng(rng)
+        super().set_rng(rng)
